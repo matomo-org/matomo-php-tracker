@@ -1,10 +1,11 @@
 # PHP Client for Piwik Analytics Tracking API
 
-The PHP Tracking Client provides all features of the Javascript Tracker, such as Ecommerce Tracking, Custom Variable, 
-Event tracking and more. Functions are named the same as the Javascript functions.
+The PHP Tracker Client provides all features of the [Piwik Javascript Tracker](http://developer.piwik.org/api-reference/tracking-javascript), 
+such as Ecommerce Tracking, Custom Variable, Event tracking and more. 
 
 ## Documentation and examples 
-See http://developer.piwik.org/api-reference/PHP-Piwik-Tracker
+Check out our [Piwik-PHP-Tracker developer documentation](http://developer.piwik.org/api-reference/PHP-Piwik-Tracker) and 
+[Piwik Tracking API guide](http://piwik.org/docs/tracking-api/).
 
 ## Requirements:
 * json extension (json_decode, json_encode)
