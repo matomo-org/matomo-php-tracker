@@ -2,8 +2,7 @@
 /**
  * Piwik - free/libre analytics platform
  *
- * Client to record visits, page views, Goals, Ecommerce activity (product views, add to carts, Ecommerce orders) in a
- * Piwik server. For more information, see README.md
+ * For more information, see README.md
  *
  * @license released under BSD License http://www.opensource.org/licenses/bsd-license.php
  * @link http://piwik.org/docs/tracking-api/
@@ -25,7 +24,7 @@ class PiwikTracker
     /**
      * Piwik base URL, for example http://example.org/piwik/
      * Must be set before using the class by calling
-     *  PiwikTracker::$URL = 'http://yourwebsite.org/piwik/';
+     * PiwikTracker::$URL = 'http://yourwebsite.org/piwik/';
      *
      * @var string
      */
