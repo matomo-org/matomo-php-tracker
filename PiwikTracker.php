@@ -1493,6 +1493,9 @@ class PiwikTracker
         if($this->configCookiesDisabled) {
             return false;
         }
+        if(!is_array($_COOKIE)) {
+            return false;
+        }
         $name = $this->getCookieName($name);
 
         // Piwik cookie names use dots separators in piwik.js,
