@@ -144,6 +144,7 @@ class PiwikTracker
 
         // Allow debug while blocking the request
         $this->requestTimeout = 600;
+        $this->requestTimeoutIsMs = false;
         $this->doBulkRequests = false;
         $this->storedTrackingActions = array();
 
@@ -1288,6 +1289,25 @@ class PiwikTracker
     }
 
     /**
+     * If set to true, $this->requestTimeout will be interpreted as milliseconds when performing the curl request
+     * in sendRequest(). Defaults to false.
+     *
+     * @param bool $bool
+     */
+    public function setRequestTimeoutIsMs($bool)
+    {
+        $this->requestTimeoutIsMs = $bool;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getRequestTimeoutIsMs()
+    {
+        return $this->requestTimeoutIsMs;
+    }
+
+    /**
      * Used in tests to output useful error messages.
      *
      * @ignore
@@ -1326,6 +1346,11 @@ class PiwikTracker
                     'Accept-Language: ' . $this->acceptLanguage
                 ));
 
+            if ($this->requestTimeoutIsMs) {
+                $options[CURLOPT_TIMEOUT_MS] = $this->requestTimeout;
+            } else {
+                $options[CURLOPT_TIMEOUT] = $this->requestTimeout;
+            }
             switch ($method) {
                 case 'POST':
                     $options[CURLOPT_POST] = TRUE;
