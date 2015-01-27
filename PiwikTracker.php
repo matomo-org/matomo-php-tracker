@@ -1315,7 +1315,7 @@ class PiwikTracker
             return true;
         }
 
-        if (function_exists('curl_init')) {
+        if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
                 CURLOPT_URL            => $url,
                 CURLOPT_USERAGENT      => $this->userAgent,
