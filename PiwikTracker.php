@@ -1326,6 +1326,8 @@ class PiwikTracker
                     'Accept-Language: ' . $this->acceptLanguage
                 ));
 
+            if (defined('PATH_TO_CERTIFICATES_FILE')) $options[CURLOPT_CAINFO] = PATH_TO_CERTIFICATES_FILE;
+
             switch ($method) {
                 case 'POST':
                     $options[CURLOPT_POST] = TRUE;
