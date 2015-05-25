@@ -967,7 +967,7 @@ class PiwikTracker
     public function getUrlTrackAction($actionUrl, $actionType)
     {
         $url = $this->getRequest($this->idSite);
-        $url .= '&' . $actionType . '=' . $actionUrl;
+        $url .= '&' . $actionType . '=' . urlencode($actionUrl);
         return $url;
     }
 
