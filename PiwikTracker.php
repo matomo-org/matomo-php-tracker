@@ -1242,14 +1242,14 @@ class PiwikTracker
     {
         $this->plugins =
             '&fla=' . (int)$flash .
-                '&java=' . (int)$java .
-                '&dir=' . (int)$director .
-                '&qt=' . (int)$quickTime .
-                '&realp=' . (int)$realPlayer .
-                '&pdf=' . (int)$pdf .
-                '&wma=' . (int)$windowsMedia .
-                '&gears=' . (int)$gears .
-                '&ag=' . (int)$silverlight;
+            '&java=' . (int)$java .
+            '&dir=' . (int)$director .
+            '&qt=' . (int)$quickTime .
+            '&realp=' . (int)$realPlayer .
+            '&pdf=' . (int)$pdf .
+            '&wma=' . (int)$windowsMedia .
+            '&gears=' . (int)$gears .
+            '&ag=' . (int)$silverlight;
     }
 
     /**
@@ -1288,6 +1288,25 @@ class PiwikTracker
     }
 
     /**
+     * If a proxy is needed to look up the address of the Piwik site, set it with this
+     * @param $proxy
+     * @param int $proxyPort
+     */
+    public function setProxy($proxy, $proxyPort = 80){
+        $this->proxy = $proxy;
+        $this->proxyPort = $proxyPort;
+    }
+
+    public function getProxy(){
+        if(isset($this->proxy) && isset($this->proxyPort)){
+            return $this->proxy.":".$this->proxyPort;
+        }
+
+        return null;
+    }
+
+
+    /**
      * Used in tests to output useful error messages.
      *
      * @ignore
@@ -1314,6 +1333,7 @@ class PiwikTracker
             $this->acceptLanguage = false;
             return true;
         }
+        $proxy = $this->getProxy();
 
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
@@ -1325,6 +1345,12 @@ class PiwikTracker
                 CURLOPT_HTTPHEADER     => array(
                     'Accept-Language: ' . $this->acceptLanguage
                 ));
+
+
+
+            if($proxy != null){
+                $options[CURLOPT_PROXY] = $proxy;
+            }
 
             if (defined('PATH_TO_CERTIFICATES_FILE')) $options[CURLOPT_CAINFO] = PATH_TO_CERTIFICATES_FILE;
 
@@ -1361,6 +1387,10 @@ class PiwikTracker
                     'timeout'    => $this->requestTimeout, // PHP 5.2.1
                 )
             );
+
+            if($proxy != null){
+                $stream_options['http']['proxy'] = $proxy;
+            }
 
             // only supports JSON data
             if (!empty($data)) {
@@ -1599,9 +1629,9 @@ class PiwikTracker
     static protected function getCurrentUrl()
     {
         return self::getCurrentScheme() . '://'
-            . self::getCurrentHost()
-            . self::getCurrentScriptName()
-            . self::getCurrentQueryString();
+        . self::getCurrentHost()
+        . self::getCurrentScriptName()
+        . self::getCurrentQueryString();
     }
 
     /**
