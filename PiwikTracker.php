@@ -661,6 +661,22 @@ class PiwikTracker
     }
 
     /**
+     * Sends a ping request.
+     *
+     * Ping requests do not track new actions. If they are sent within the standard visit length (see global.ini.php),
+     * they will extend the existing visit and the current last action for the visit. If after the standard visit length,
+     * ping requests will create a new visit using the last action in the last known visit.
+     *
+     * @return mixed Response or true if using bulk request
+     */
+    public function doPing()
+    {
+        $url = $this->getRequest($this->idSite);
+        $url .= '&ping=1';
+        return $this->sendRequest($url);
+    }
+
+    /**
      * Sets the current page view as an item (product) page view, or an Ecommerce Category page view.
      *
      * This must be called before doTrackPageView() on this product/category page.
