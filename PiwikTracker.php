@@ -443,14 +443,16 @@ class PiwikTracker
      */
     static protected function domainFixup($domain)
     {
-        $dl = strlen($domain) - 1;
-        // remove trailing '.'
-        if ($domain{$dl} === '.') {
-            $domain = substr($domain, 0, $dl);
-        }
-        // remove leading '*'
-        if (substr($domain, 0, 2) === '*.') {
-            $domain = substr($domain, 1);
+        if (strlen($domain) > 0) {
+            $dl = strlen($domain) - 1;
+            // remove trailing '.'
+            if ($domain{$dl} === '.') {
+                $domain = substr($domain, 0, $dl);
+            }
+            // remove leading '*'
+            if (substr($domain, 0, 2) === '*.') {
+                $domain = substr($domain, 1);
+            }
         }
         return $domain;
     }
