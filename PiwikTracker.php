@@ -80,7 +80,7 @@ class PiwikTracker
      * @param string $apiUrl "http://example.org/piwik/" or "http://piwik.example.org/"
      *                         If set, will overwrite PiwikTracker::$URL
      */
-    function __construct($idSite, $apiUrl = '')
+    public function __construct($idSite, $apiUrl = '')
     {
         $this->ecommerceItems = array();
         $this->attributionInfo = false;
@@ -244,7 +244,7 @@ class PiwikTracker
         }
         if ($scope == 'page') {
             $this->pageCustomVar[$id] = array($name, $value);
-        } elseif($scope == 'event') {
+        } elseif ($scope == 'event') {
             $this->eventCustomVar[$id] = array($name, $value);
         } elseif ($scope == 'visit') {
             $this->visitorCustomVar[$id] = array($name, $value);
@@ -256,7 +256,8 @@ class PiwikTracker
     /**
      * Returns the currently assigned Custom Variable.
      *
-     * If scope is 'visit', it will attempt to read the value set in the first party cookie created by Piwik Tracker ($_COOKIE array).
+     * If scope is 'visit', it will attempt to read the value set in the first party cookie created by Piwik Tracker
+     *  ($_COOKIE array).
      *
      * @param int $id Custom Variable integer index to fetch from cookie. Should be a value from 1 to 5
      * @param string $scope Custom variable scope. Possible values: visit, page, event
@@ -270,9 +271,11 @@ class PiwikTracker
         if ($scope == 'page') {
             return isset($this->pageCustomVar[$id]) ? $this->pageCustomVar[$id] : false;
         } elseif ($scope == 'event') {
-            return  isset($this->eventCustomVar[$id]) ? $this->eventCustomVar[$id] : false;
-        } else if ($scope != 'visit') {
-            throw new Exception("Invalid 'scope' parameter value");
+            return isset($this->eventCustomVar[$id]) ? $this->eventCustomVar[$id] : false;
+        } else {
+            if ($scope != 'visit') {
+                throw new Exception("Invalid 'scope' parameter value");
+            }
         }
         if (!empty($this->visitorCustomVar[$id])) {
             return $this->visitorCustomVar[$id];
@@ -288,6 +291,7 @@ class PiwikTracker
         ) {
             return false;
         }
+
         return $cookieDecoded[$id];
     }
 
@@ -303,7 +307,6 @@ class PiwikTracker
         $this->pageCustomVar = array();
         $this->eventCustomVar = array();
     }
-
 
     /**
      * Sets the current visitor ID to a random new one.
@@ -420,10 +423,11 @@ class PiwikTracker
     /**
      * Enable Cookie Creation - this will cause a first party VisitorId cookie to be set when the VisitorId is set or reset
      *
-     * @param string $domain (optional) Set first-party cookie domain. Accepted values: example.com, *.example.com (same as .example.com) or subdomain.example.com
+     * @param string $domain (optional) Set first-party cookie domain.
+     *  Accepted values: example.com, *.example.com (same as .example.com) or subdomain.example.com
      * @param string $path (optional) Set first-party cookie path
      */
-    public function enableCookies( $domain = '', $path = '/' )
+    public function enableCookies($domain = '', $path = '/')
     {
         $this->configCookiesDisabled = false;
         $this->configCookieDomain = self::domainFixup($domain);
@@ -441,7 +445,7 @@ class PiwikTracker
     /**
      * Fix-up domain
      */
-    static protected function domainFixup($domain)
+    protected static function domainFixup($domain)
     {
         if (strlen($domain) > 0) {
             $dl = strlen($domain) - 1;
@@ -454,6 +458,7 @@ class PiwikTracker
                 $domain = substr($domain, 1);
             }
         }
+
         return $domain;
     }
 
@@ -462,9 +467,18 @@ class PiwikTracker
      * @param string $cookieName
      * @return string
      */
-    protected function getCookieName($cookieName) {
+    protected function getCookieName($cookieName)
+    {
         // NOTE: If the cookie name is changed, we must also update the method in piwik.js with the same name.
-        $hash = substr( sha1( ($this->configCookieDomain == '' ? self::getCurrentHost() : $this->configCookieDomain)  . $this->configCookiePath ), 0, 4);
+        $hash = substr(
+            sha1(
+                ($this->configCookieDomain == '' ? self::getCurrentHost(
+                ) : $this->configCookieDomain) . $this->configCookiePath
+            ),
+            0,
+            4
+        );
+
         return self::FIRST_PARTY_COOKIES_PREFIX . $cookieName . '.' . $this->idSite . '.' . $hash;
     }
 
@@ -477,6 +491,7 @@ class PiwikTracker
     public function doTrackPageView($documentTitle)
     {
         $url = $this->getUrlTrackPageView($documentTitle);
+
         return $this->sendRequest($url);
     }
 
@@ -492,6 +507,7 @@ class PiwikTracker
     public function doTrackEvent($category, $action, $name = false, $value = false)
     {
         $url = $this->getUrlTrackEvent($category, $action, $name, $value);
+
         return $this->sendRequest($url);
     }
 
@@ -506,6 +522,7 @@ class PiwikTracker
     public function doTrackContentImpression($contentName, $contentPiece = 'Unknown', $contentTarget = false)
     {
         $url = $this->getUrlTrackContentImpression($contentName, $contentPiece, $contentTarget);
+
         return $this->sendRequest($url);
     }
 
@@ -519,9 +536,14 @@ class PiwikTracker
      * @param string|bool $contentTarget (optional) The target the content leading to when an interaction occurs. For instance the URL of a landing page.
      * @return mixed Response string or true if using bulk requests.
      */
-    public function doTrackContentInteraction($interaction, $contentName, $contentPiece = 'Unknown', $contentTarget = false)
-    {
+    public function doTrackContentInteraction(
+        $interaction,
+        $contentName,
+        $contentPiece = 'Unknown',
+        $contentTarget = false
+    ) {
         $url = $this->getUrlTrackContentInteraction($interaction, $contentName, $contentPiece, $contentTarget);
+
         return $this->sendRequest($url);
     }
 
@@ -538,6 +560,7 @@ class PiwikTracker
     public function doTrackSiteSearch($keyword, $category = '', $countResults = false)
     {
         $url = $this->getUrlTrackSiteSearch($keyword, $category, $countResults);
+
         return $this->sendRequest($url);
     }
 
@@ -551,6 +574,7 @@ class PiwikTracker
     public function doTrackGoal($idGoal, $revenue = 0.0)
     {
         $url = $this->getUrlTrackGoal($idGoal, $revenue);
+
         return $this->sendRequest($url);
     }
 
@@ -565,6 +589,7 @@ class PiwikTracker
     {
         // Referrer could be udpated to be the current URL temporarily (to mimic JS behavior)
         $url = $this->getUrlTrackAction($actionUrl, $actionType);
+
         return $this->sendRequest($url);
     }
 
@@ -607,6 +632,7 @@ class PiwikTracker
     public function doTrackEcommerceCartUpdate($grandTotal)
     {
         $url = $this->getUrlTrackEcommerceCartUpdate($grandTotal);
+
         return $this->sendRequest($url);
     }
 
@@ -621,13 +647,16 @@ class PiwikTracker
     public function doBulkTrack()
     {
         if (empty($this->storedTrackingActions)) {
-            throw new Exception("Error:  you must call the function doTrackPageView or doTrackGoal from this class, before calling this method doBulkTrack()");
+            throw new Exception(
+                "Error:  you must call the function doTrackPageView or doTrackGoal from this class,
+                 before calling this method doBulkTrack()"
+            );
         }
 
         $data = array('requests' => $this->storedTrackingActions);
 
         // token_auth is not required by default, except if bulk_requests_require_authentication=1
-        if(!empty($this->token_auth)) {
+        if (!empty($this->token_auth)) {
             $data['token_auth'] = $this->token_auth;
         }
 
@@ -656,9 +685,16 @@ class PiwikTracker
      * @param float $discount (optional) Discounted amount in this order
      * @return mixed Response or true if using bulk request
      */
-    public function doTrackEcommerceOrder($orderId, $grandTotal, $subTotal = 0.0, $tax = 0.0, $shipping = 0.0, $discount = 0.0)
-    {
+    public function doTrackEcommerceOrder(
+        $orderId,
+        $grandTotal,
+        $subTotal = 0.0,
+        $tax = 0.0,
+        $shipping = 0.0,
+        $discount = 0.0
+    ) {
         $url = $this->getUrlTrackEcommerceOrder($orderId, $grandTotal, $subTotal, $tax, $shipping, $discount);
+
         return $this->sendRequest($url);
     }
 
@@ -675,6 +711,7 @@ class PiwikTracker
     {
         $url = $this->getRequest($this->idSite);
         $url .= '&ping=1';
+
         return $this->sendRequest($url);
     }
 
@@ -708,7 +745,7 @@ class PiwikTracker
         $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_CATEGORY] = array('_pkc', $category);
 
         if (!empty($price)) {
-            $price = (float) $price;
+            $price = (float)$price;
             $price = $this->forceDotAsSeparatorForDecimalPoint($price);
             $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_PRICE] = array('_pkp', $price);
         }
@@ -751,6 +788,7 @@ class PiwikTracker
     public function getUrlTrackEcommerceCartUpdate($grandTotal)
     {
         $url = $this->getUrlTrackEcommerce($grandTotal);
+
         return $url;
     }
 
@@ -760,14 +798,21 @@ class PiwikTracker
      * so items will have to be added again via addEcommerceItem()
      * @ignore
      */
-    public function getUrlTrackEcommerceOrder($orderId, $grandTotal, $subTotal = 0.0, $tax = 0.0, $shipping = 0.0, $discount = 0.0)
-    {
+    public function getUrlTrackEcommerceOrder(
+        $orderId,
+        $grandTotal,
+        $subTotal = 0.0,
+        $tax = 0.0,
+        $shipping = 0.0,
+        $discount = 0.0
+    ) {
         if (empty($orderId)) {
             throw new Exception("You must specifiy an orderId for the Ecommerce order");
         }
         $url = $this->getUrlTrackEcommerce($grandTotal, $subTotal, $tax, $shipping, $discount);
         $url .= '&ec_id=' . urlencode($orderId);
         $this->ecommerceLastOrderTimestamp = $this->getTimestamp();
+
         return $url;
     }
 
@@ -794,7 +839,7 @@ class PiwikTracker
             $url .= '&ec_st=' . $subTotal;
         }
         if (!empty($tax)) {
-            $tax  = $this->forceDotAsSeparatorForDecimalPoint($tax);
+            $tax = $this->forceDotAsSeparatorForDecimalPoint($tax);
             $url .= '&ec_tx=' . $tax;
         }
         if (!empty($shipping)) {
@@ -814,6 +859,7 @@ class PiwikTracker
             $url .= '&ec_items=' . urlencode(json_encode($items));
         }
         $this->ecommerceItems = array();
+
         return $url;
     }
 
@@ -830,6 +876,7 @@ class PiwikTracker
         if (strlen($documentTitle) > 0) {
             $url .= '&action_name=' . urlencode($documentTitle);
         }
+
         return $url;
     }
 
@@ -847,23 +894,24 @@ class PiwikTracker
     public function getUrlTrackEvent($category, $action, $name = false, $value = false)
     {
         $url = $this->getRequest($this->idSite);
-        if(strlen($category) == 0) {
+        if (strlen($category) == 0) {
             throw new Exception("You must specify an Event Category name (Music, Videos, Games...).");
         }
-        if(strlen($action) == 0) {
+        if (strlen($action) == 0) {
             throw new Exception("You must specify an Event action (click, view, add...).");
         }
 
         $url .= '&e_c=' . urlencode($category);
         $url .= '&e_a=' . urlencode($action);
 
-        if(strlen($name) > 0) {
+        if (strlen($name) > 0) {
             $url .= '&e_n=' . urlencode($name);
         }
-        if(strlen($value) > 0) {
+        if (strlen($value) > 0) {
             $value = $this->forceDotAsSeparatorForDecimalPoint($value);
-            $url  .= '&e_v=' . $value;
+            $url .= '&e_v=' . $value;
         }
+
         return $url;
     }
 
@@ -952,6 +1000,7 @@ class PiwikTracker
         if (!empty($countResults) || $countResults === 0) {
             $url .= '&search_count=' . (int)$countResults;
         }
+
         return $url;
     }
 
@@ -969,8 +1018,9 @@ class PiwikTracker
         $url .= '&idgoal=' . $idGoal;
         if (!empty($revenue)) {
             $revenue = $this->forceDotAsSeparatorForDecimalPoint($revenue);
-            $url    .= '&revenue=' . $revenue;
+            $url .= '&revenue=' . $revenue;
         }
+
         return $url;
     }
 
@@ -986,6 +1036,7 @@ class PiwikTracker
     {
         $url = $this->getRequest($this->idSite);
         $url .= '&' . $actionType . '=' . urlencode($actionUrl);
+
         return $url;
     }
 
@@ -1032,16 +1083,17 @@ class PiwikTracker
      *
      * A User ID can be a username, UUID or an email address, or any number or string that uniquely identifies a user or client.
      *
-     * @param string $userId  Any user ID string (eg. email address, ID, username). Must be non empty. Set to false to de-assign a user id previously set.
+     * @param string $userId Any user ID string (eg. email address, ID, username). Must be non empty. Set to false to de-assign a user id previously set.
      * @throws Exception
      */
     public function setUserId($userId)
     {
-        if($userId === false) {
+        if ($userId === false) {
             $this->setNewVisitorId();
+
             return;
         }
-        if($userId === '') {
+        if ($userId === '') {
             throw new Exception("User ID cannot be empty.");
         }
         $this->userId = $userId;
@@ -1055,9 +1107,9 @@ class PiwikTracker
      * @param $id
      * @return string
      */
-    static public function getUserIdHashed($id)
+    public static function getUserIdHashed($id)
     {
-        return substr( sha1( $id ), 0, 16);
+        return substr(sha1($id), 0, 16);
     }
 
     /**
@@ -1080,11 +1132,13 @@ class PiwikTracker
         if (strlen($visitorId) != self::LENGTH_VISITOR_ID
             || strspn($visitorId, $hexChars) !== strlen($visitorId)
         ) {
-            throw new Exception("setVisitorId() expects a "
+            throw new Exception(
+                "setVisitorId() expects a "
                 . self::LENGTH_VISITOR_ID
                 . " characters hexadecimal string (containing only the following: "
                 . $hexChars
-                . ")");
+                . ")"
+            );
         }
         $this->forcedVisitorId = $visitorId;
     }
@@ -1112,6 +1166,7 @@ class PiwikTracker
         if ($this->loadVisitorIdCookie()) {
             return $this->cookieVisitorId;
         }
+
         return $this->randomVisitorId;
     }
 
@@ -1142,14 +1197,17 @@ class PiwikTracker
         if (strlen($parts[0]) != self::LENGTH_VISITOR_ID) {
             return false;
         }
-        $this->cookieVisitorId = $parts[0]; // provides backward compatibility since getVisitorId() didn't change any existing VisitorId value
+        /* $this->cookieVisitorId provides backward compatibility since getVisitorId()
+        didn't change any existing VisitorId value */
+        $this->cookieVisitorId = $parts[0];
         $this->createTs = $parts[1];
         $this->visitCount = (int)$parts[2];
         $this->currentVisitTs = $parts[3];
         $this->lastVisitTs = $parts[4];
-        if(isset($parts[5])) {
+        if (isset($parts[5])) {
             $this->ecommerceLastOrderTimestamp = $parts[5];
         }
+
         return true;
     }
 
@@ -1160,7 +1218,7 @@ class PiwikTracker
     {
         $expire = $this->currentTs - 86400;
         $cookies = array('id', 'ses', 'cvar', 'ref');
-        foreach($cookies as $cookie) {
+        foreach ($cookies as $cookie) {
             $this->setCookie($cookie, '', $expire);
         }
     }
@@ -1177,9 +1235,10 @@ class PiwikTracker
      */
     public function getAttributionInfo()
     {
-        if(!empty($this->attributionInfo)) {
+        if (!empty($this->attributionInfo)) {
             return json_encode($this->attributionInfo);
         }
+
         return $this->getCookieMatchingName('ref');
     }
 
@@ -1256,18 +1315,27 @@ class PiwikTracker
      * @param bool $gears
      * @param bool $silverlight
      */
-    public function setPlugins($flash = false, $java = false, $director = false, $quickTime = false, $realPlayer = false, $pdf = false, $windowsMedia = false, $gears = false, $silverlight = false)
-    {
+    public function setPlugins(
+        $flash = false,
+        $java = false,
+        $director = false,
+        $quickTime = false,
+        $realPlayer = false,
+        $pdf = false,
+        $windowsMedia = false,
+        $gears = false,
+        $silverlight = false
+    ) {
         $this->plugins =
             '&fla=' . (int)$flash .
-                '&java=' . (int)$java .
-                '&dir=' . (int)$director .
-                '&qt=' . (int)$quickTime .
-                '&realp=' . (int)$realPlayer .
-                '&pdf=' . (int)$pdf .
-                '&wma=' . (int)$windowsMedia .
-                '&gears=' . (int)$gears .
-                '&ag=' . (int)$silverlight;
+            '&java=' . (int)$java .
+            '&dir=' . (int)$director .
+            '&qt=' . (int)$quickTime .
+            '&realp=' . (int)$realPlayer .
+            '&pdf=' . (int)$pdf .
+            '&wma=' . (int)$windowsMedia .
+            '&gears=' . (int)$gears .
+            '&ag=' . (int)$silverlight;
     }
 
     /**
@@ -1330,25 +1398,29 @@ class PiwikTracker
             $this->clearCustomVariables();
             $this->userAgent = false;
             $this->acceptLanguage = false;
+
             return true;
         }
 
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
-                CURLOPT_URL            => $url,
-                CURLOPT_USERAGENT      => $this->userAgent,
-                CURLOPT_HEADER         => true,
-                CURLOPT_TIMEOUT        => $this->requestTimeout,
+                CURLOPT_URL => $url,
+                CURLOPT_USERAGENT => $this->userAgent,
+                CURLOPT_HEADER => true,
+                CURLOPT_TIMEOUT => $this->requestTimeout,
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HTTPHEADER     => array(
-                    'Accept-Language: ' . $this->acceptLanguage
-                ));
+                CURLOPT_HTTPHEADER => array(
+                    'Accept-Language: ' . $this->acceptLanguage,
+                ),
+            );
 
-            if (defined('PATH_TO_CERTIFICATES_FILE')) $options[CURLOPT_CAINFO] = PATH_TO_CERTIFICATES_FILE;
+            if (defined('PATH_TO_CERTIFICATES_FILE')) {
+                $options[CURLOPT_CAINFO] = PATH_TO_CERTIFICATES_FILE;
+            }
 
             switch ($method) {
                 case 'POST':
-                    $options[CURLOPT_POST] = TRUE;
+                    $options[CURLOPT_POST] = true;
                     break;
                 default:
                     break;
@@ -1370,25 +1442,28 @@ class PiwikTracker
             if (!empty($response)) {
                 list($header, $content) = explode("\r\n\r\n", $response, $limitCount = 2);
             }
-        } else if (function_exists('stream_context_create')) {
-            $stream_options = array(
-                'http' => array(
-                    'method'     => $method,
-                    'user_agent' => $this->userAgent,
-                    'header'     => "Accept-Language: " . $this->acceptLanguage . "\r\n",
-                    'timeout'    => $this->requestTimeout, // PHP 5.2.1
-                )
-            );
+        } else {
+            if (function_exists('stream_context_create')) {
+                $stream_options = array(
+                    'http' => array(
+                        'method' => $method,
+                        'user_agent' => $this->userAgent,
+                        'header' => "Accept-Language: " . $this->acceptLanguage . "\r\n",
+                        'timeout' => $this->requestTimeout, // PHP 5.2.1
+                    ),
+                );
 
-            // only supports JSON data
-            if (!empty($data)) {
-                $stream_options['http']['header'] .= "Content-Type: application/json \r\n";
-                $stream_options['http']['content'] = $data;
+                // only supports JSON data
+                if (!empty($data)) {
+                    $stream_options['http']['header'] .= "Content-Type: application/json \r\n";
+                    $stream_options['http']['content'] = $data;
+                }
+                $ctx = stream_context_create($stream_options);
+                $response = file_get_contents($url, 0, $ctx);
+                $content = $response;
             }
-            $ctx = stream_context_create($stream_options);
-            $response = file_get_contents($url, 0, $ctx);
-            $content = $response;
         }
+
         return $content;
     }
 
@@ -1409,13 +1484,17 @@ class PiwikTracker
     protected function getBaseUrl()
     {
         if (empty(self::$URL)) {
-            throw new Exception('You must first set the Piwik Tracker URL by calling PiwikTracker::$URL = \'http://your-website.org/piwik/\';');
+            throw new Exception(
+                'You must first set the Piwik Tracker URL by calling
+                 PiwikTracker::$URL = \'http://your-website.org/piwik/\';'
+            );
         }
         if (strpos(self::$URL, '/piwik.php') === false
             && strpos(self::$URL, '/proxy-piwik.php') === false
         ) {
             self::$URL .= '/piwik.php';
         }
+
         return self::$URL;
     }
 
@@ -1433,7 +1512,8 @@ class PiwikTracker
             '&r=' . substr(strval(mt_rand()), 2, 6) .
 
             // XDEBUG_SESSIONS_START and KEY are related to the PHP Debugger, this can be ignored in other languages
-            (!empty($_GET['XDEBUG_SESSION_START']) ? '&XDEBUG_SESSION_START=' . @urlencode($_GET['XDEBUG_SESSION_START']) : '') .
+            (!empty($_GET['XDEBUG_SESSION_START']) ?
+                '&XDEBUG_SESSION_START=' . @urlencode($_GET['XDEBUG_SESSION_START']) : '') .
             (!empty($_GET['KEY']) ? '&KEY=' . @urlencode($_GET['KEY']) : '') .
 
             // Only allowed for Super User, token_auth required,
@@ -1441,17 +1521,20 @@ class PiwikTracker
             (!empty($this->userId) ? '&uid=' . urlencode($this->userId) : '') .
             (!empty($this->forcedDatetime) ? '&cdt=' . urlencode($this->forcedDatetime) : '') .
             (!empty($this->forcedNewVisit) ? '&new_visit=1' : '') .
-            ((!empty($this->token_auth) && !$this->doBulkRequests) ? '&token_auth=' . urlencode($this->token_auth) : '') .
+            ((!empty($this->token_auth) && !$this->doBulkRequests) ?
+                '&token_auth=' . urlencode($this->token_auth) : '') .
 
             // Values collected from cookie
             '&_idts=' . $this->createTs .
             '&_idvc=' . $this->visitCount .
             (!empty($this->lastVisitTs) ? '&_viewts=' . $this->lastVisitTs : '' ) .
-            (!empty($this->ecommerceLastOrderTimestamp) ? '&_ects=' . urlencode($this->ecommerceLastOrderTimestamp) : '') .
+            (!empty($this->ecommerceLastOrderTimestamp) ?
+                '&_ects=' . urlencode($this->ecommerceLastOrderTimestamp) : '') .
 
             // These parameters are set by the JS, but optional when using API
             (!empty($this->plugins) ? $this->plugins : '') .
-            (($this->localHour !== false && $this->localMinute !== false && $this->localSecond !== false) ? '&h=' . $this->localHour . '&m=' . $this->localMinute . '&s=' . $this->localSecond : '') .
+            (($this->localHour !== false && $this->localMinute !== false && $this->localSecond !== false) ?
+                '&h=' . $this->localHour . '&m=' . $this->localMinute . '&s=' . $this->localSecond : '') .
             (!empty($this->width) && !empty($this->height) ? '&res=' . $this->width . 'x' . $this->height : '') .
             (!empty($this->hasCookies) ? '&cookie=' . $this->hasCookies : '') .
 
@@ -1466,7 +1549,8 @@ class PiwikTracker
             // URL parameters
             '&url=' . urlencode($this->pageUrl) .
             '&urlref=' . urlencode($this->urlReferrer) .
-            ((!empty($this->pageCharset) && $this->pageCharset != self::DEFAULT_CHARSET_PARAMETER_VALUES) ? '&cs=' . $this->pageCharset : '') .
+            ((!empty($this->pageCharset) && $this->pageCharset != self::DEFAULT_CHARSET_PARAMETER_VALUES) ?
+                '&cs=' . $this->pageCharset : '') .
 
             // Attribution information, so that Goal conversions are attributed to the right referrer or campaign
             // Campaign name
@@ -1510,10 +1594,10 @@ class PiwikTracker
      */
     protected function getCookieMatchingName($name)
     {
-        if($this->configCookiesDisabled) {
+        if ($this->configCookiesDisabled) {
             return false;
         }
-        if(!is_array($_COOKIE)) {
+        if (!is_array($_COOKIE)) {
             return false;
         }
         $name = $this->getCookieName($name);
@@ -1526,6 +1610,7 @@ class PiwikTracker
                 return $cookieValue;
             }
         }
+
         return false;
     }
 
@@ -1536,16 +1621,18 @@ class PiwikTracker
      * @return string
      * @ignore
      */
-    static protected function getCurrentScriptName()
+    protected static function getCurrentScriptName()
     {
         $url = '';
         if (!empty($_SERVER['PATH_INFO'])) {
             $url = $_SERVER['PATH_INFO'];
-        } else if (!empty($_SERVER['REQUEST_URI'])) {
-            if (($pos = strpos($_SERVER['REQUEST_URI'], '?')) !== false) {
-                $url = substr($_SERVER['REQUEST_URI'], 0, $pos);
-            } else {
-                $url = $_SERVER['REQUEST_URI'];
+        } else {
+            if (!empty($_SERVER['REQUEST_URI'])) {
+                if (($pos = strpos($_SERVER['REQUEST_URI'], '?')) !== false) {
+                    $url = substr($_SERVER['REQUEST_URI'], 0, $pos);
+                } else {
+                    $url = $_SERVER['REQUEST_URI'];
+                }
             }
         }
         if (empty($url)) {
@@ -1555,6 +1642,7 @@ class PiwikTracker
         if ($url[0] !== '/') {
             $url = '/' . $url;
         }
+
         return $url;
     }
 
@@ -1565,13 +1653,14 @@ class PiwikTracker
      * @return string 'https' or 'http'
      * @ignore
      */
-    static protected function getCurrentScheme()
+    protected static function getCurrentScheme()
     {
         if (isset($_SERVER['HTTPS'])
             && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] === true)
         ) {
             return 'https';
         }
+
         return 'http';
     }
 
@@ -1582,11 +1671,12 @@ class PiwikTracker
      * @return string
      * @ignore
      */
-    static protected function getCurrentHost()
+    protected static function getCurrentHost()
     {
         if (isset($_SERVER['HTTP_HOST'])) {
             return $_SERVER['HTTP_HOST'];
         }
+
         return 'unknown';
     }
 
@@ -1597,7 +1687,7 @@ class PiwikTracker
      * @return string
      * @ignore
      */
-    static protected function getCurrentQueryString()
+    protected static function getCurrentQueryString()
     {
         $url = '';
         if (isset($_SERVER['QUERY_STRING'])
@@ -1605,6 +1695,7 @@ class PiwikTracker
         ) {
             $url .= '?' . $_SERVER['QUERY_STRING'];
         }
+
         return $url;
     }
 
@@ -1614,12 +1705,12 @@ class PiwikTracker
      * @return string
      * @ignore
      */
-    static protected function getCurrentUrl()
+    protected static function getCurrentUrl()
     {
         return self::getCurrentScheme() . '://'
-            . self::getCurrentHost()
-            . self::getCurrentScriptName()
-            . self::getCurrentQueryString();
+        . self::getCurrentHost()
+        . self::getCurrentScriptName()
+        . self::getCurrentQueryString();
     }
 
     /**
@@ -1638,7 +1729,7 @@ class PiwikTracker
 
         // Set the 'ref' cookie
         $attributionInfo = $this->getAttributionInfo();
-        if(!empty($attributionInfo)) {
+        if (!empty($attributionInfo)) {
             $this->setCookie('ref', $attributionInfo, $this->configReferralCookieTimeout);
         }
 
@@ -1647,7 +1738,8 @@ class PiwikTracker
 
         // Set the 'id' cookie
         $visitCount = $this->visitCount + 1;
-        $cookieValue = $this->getVisitorId() . '.' . $this->createTs . '.' . $visitCount . '.' . $this->currentTs . '.' . $this->lastVisitTs . '.' . $this->ecommerceLastOrderTimestamp;
+        $cookieValue = $this->getVisitorId() . '.' . $this->createTs . '.' . $visitCount . '.' . $this->currentTs .
+            '.' . $this->lastVisitTs . '.' . $this->ecommerceLastOrderTimestamp;
         $this->setCookie('id', $cookieValue, $this->configVisitorCookieTimeout);
 
         // Set the 'cvar' cookie
@@ -1667,8 +1759,14 @@ class PiwikTracker
     protected function setCookie($cookieName, $cookieValue, $cookieTTL)
     {
         $cookieExpire = $this->currentTs + $cookieTTL;
-        if(!headers_sent()) {
-            setcookie($this->getCookieName($cookieName), $cookieValue, $cookieExpire, $this->configCookiePath, $this->configCookieDomain);
+        if (!headers_sent()) {
+            setcookie(
+                $this->getCookieName($cookieName),
+                $cookieValue,
+                $cookieExpire,
+                $this->configCookiePath,
+                $this->configCookieDomain
+            );
         }
     }
 
@@ -1681,6 +1779,7 @@ class PiwikTracker
         if (!$cookie) {
             return false;
         }
+
         return json_decode($cookie, $assoc = true);
     }
 }
@@ -1695,6 +1794,7 @@ class PiwikTracker
 function Piwik_getUrlTrackPageView($idSite, $documentTitle = '')
 {
     $tracker = new PiwikTracker($idSite);
+
     return $tracker->getUrlTrackPageView($documentTitle);
 }
 
@@ -1709,6 +1809,6 @@ function Piwik_getUrlTrackPageView($idSite, $documentTitle = '')
 function Piwik_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
 {
     $tracker = new PiwikTracker($idSite);
+
     return $tracker->getUrlTrackGoal($idGoal, $revenue);
 }
-
