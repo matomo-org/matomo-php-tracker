@@ -89,6 +89,7 @@ class PiwikTracker
         $this->forcedNewVisit = false;
         $this->generationTime = false;
         $this->pageCustomVar = false;
+        $this->customParameters = array();
         $this->customData = false;
         $this->hasCookies = false;
         $this->token_auth = false;
@@ -306,6 +307,28 @@ class PiwikTracker
         $this->visitorCustomVar = array();
         $this->pageCustomVar = array();
         $this->eventCustomVar = array();
+    }
+
+    /**
+     * Sets a custom tracking parameter. This is useful if you need to send any tracking parameters for a 3rd party
+     * plugin that is not shipped with Piwik itself. Please note that custom parameters are cleared after each
+     * tracking request.
+     *
+     * @param string $trackingApiParameter The name of the tracking API parameter, eg 'dimension1'
+     * @param string $value Tracking parameter value that shall be sent for this tracking parameter.
+     * @throws Exception
+     */
+    public function setCustomTrackingParameter($trackingApiParameter, $value)
+    {
+        $this->customParameters[$trackingApiParameter] = $value;
+    }
+
+    /**
+     * Clear / reset all previously set custom tracking parameters.
+     */
+    public function clearCustomTrackingParameters()
+    {
+        $this->customParameters = array();
     }
 
     /**
@@ -1396,6 +1419,7 @@ class PiwikTracker
 
             // Clear custom variables so they don't get copied over to other users in the bulk request
             $this->clearCustomVariables();
+            $this->clearCustomTrackingParameters();
             $this->userAgent = false;
             $this->acceptLanguage = false;
 
@@ -1505,6 +1529,13 @@ class PiwikTracker
     {
         $this->setFirstPartyCookies();
 
+        $customFields = '';
+        if (!empty($this->customParameters)) {
+            foreach ($this->customParameters as $parameter => $value) {
+                $customFields .= '&' . urlencode($parameter) . '=' . urlencode($value);
+            }
+        }
+
         $url = $this->getBaseUrl() .
             '?idsite=' . $idSite .
             '&rec=1' .
@@ -1568,6 +1599,7 @@ class PiwikTracker
             (!empty($this->city) ? '&city=' . urlencode($this->city) : '') .
             (!empty($this->lat) ? '&lat=' . urlencode($this->lat) : '') .
             (!empty($this->long) ? '&long=' . urlencode($this->long) : '') .
+            $customFields .
             (!$this->sendImageResponse ? '&send_image=0' : '') .
 
             // DEBUG
@@ -1577,6 +1609,7 @@ class PiwikTracker
         // Reset page level custom variables after this page view
         $this->pageCustomVar = array();
         $this->eventCustomVar = array();
+        $this->clearCustomTrackingParameters();
 
         // force new visit only once, user must call again setForceNewVisit()
         $this->forcedNewVisit = false;
