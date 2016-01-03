@@ -1239,10 +1239,9 @@ class PiwikTracker
      */
     public function deleteCookies()
     {
-        $expire = $this->currentTs - 86400;
         $cookies = array('id', 'ses', 'cvar', 'ref');
         foreach ($cookies as $cookie) {
-            $this->setCookie($cookie, '', $expire);
+            $this->setCookie($cookie, '', -86400);
         }
     }
 
