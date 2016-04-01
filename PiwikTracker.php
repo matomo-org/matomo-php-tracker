@@ -1298,7 +1298,7 @@ class PiwikTracker
     }
 
     public function getProxy(){
-        if(isset($this->proxy) && isset($this->proxyPort)){
+        if (isset($this->proxy) && isset($this->proxyPort)) {
             return $this->proxy.":".$this->proxyPort;
         }
 
