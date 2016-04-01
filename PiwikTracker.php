@@ -1292,16 +1292,21 @@ class PiwikTracker
      * @param string $proxy IP as string, for example "173.234.92.107"
      * @param int $proxyPort
      */
-    public function setProxy($proxy, $proxyPort = 80){
+    public function setProxy($proxy, $proxyPort = 80)
+    {
         $this->proxy = $proxy;
         $this->proxyPort = $proxyPort;
     }
 
-    public function getProxy(){
+    /**
+     * If the proxy IP and the proxy port have been set, with the setProxy() function
+     * returns a string, like "173.234.92.107:80"
+     */
+    public function getProxy()
+    {
         if (isset($this->proxy) && isset($this->proxyPort)) {
             return $this->proxy.":".$this->proxyPort;
         }
-
         return null;
     }
 
