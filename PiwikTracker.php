@@ -1289,7 +1289,7 @@ class PiwikTracker
 
     /**
      * If a proxy is needed to look up the address of the Piwik site, set it with this
-     * @param $proxy
+     * @param string $proxy IP as string, for example "173.234.92.107"
      * @param int $proxyPort
      */
     public function setProxy($proxy, $proxyPort = 80){
