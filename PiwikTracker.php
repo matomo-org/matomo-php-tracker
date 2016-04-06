@@ -160,40 +160,48 @@ class PiwikTracker
      * If required though, you can also specify another charset using this function.
      *
      * @param string $charset
+     * @return $this
      */
     public function setPageCharset($charset = '')
     {
         $this->pageCharset = $charset;
+        return $this;
     }
 
     /**
      * Sets the current URL being tracked
      *
      * @param string $url Raw URL (not URL encoded)
+     * @return $this
      */
     public function setUrl($url)
     {
         $this->pageUrl = $url;
+        return $this;
     }
 
     /**
      * Sets the URL referrer used to track Referrers details for new visits.
      *
      * @param string $url Raw URL (not URL encoded)
+     * @return $this
      */
     public function setUrlReferrer($url)
     {
         $this->urlReferrer = $url;
+        return $this;
     }
 
     /**
      * Sets the time that generating the document on the server side took.
      *
      * @param int $timeMs Generation time in ms
+     * @return $this
      */
     public function setGenerationTime($timeMs)
     {
         $this->generationTime = $timeMs;
+        return $this;
     }
 
     /**
@@ -203,6 +211,7 @@ class PiwikTracker
     public function setUrlReferer($url)
     {
         $this->setUrlReferrer($url);
+        return $this;
     }
 
     /**
@@ -216,6 +225,7 @@ class PiwikTracker
      * to the 'ref' first party cookie storing referral information.
      *
      * @param string $jsonEncoded JSON encoded array containing Attribution info
+     * @return $this
      * @throws Exception
      * @see function getAttributionInfo() in https://github.com/piwik/piwik/blob/master/js/piwik.js
      */
@@ -226,6 +236,7 @@ class PiwikTracker
             throw new Exception("setAttributionInfo() is expecting a JSON encoded string, $jsonEncoded given");
         }
         $this->attributionInfo = $decoded;
+        return $this;
     }
 
     /**
@@ -236,6 +247,7 @@ class PiwikTracker
      * @param string $name Custom variable name
      * @param string $value Custom variable value
      * @param string $scope Custom variable scope. Possible values: visit, page, event
+     * @return $this
      * @throws Exception
      */
     public function setCustomVariable($id, $name, $value, $scope = 'visit')
@@ -252,6 +264,7 @@ class PiwikTracker
         } else {
             throw new Exception("Invalid 'scope' parameter value");
         }
+        return $this;
     }
 
     /**
@@ -316,11 +329,13 @@ class PiwikTracker
      *
      * @param string $trackingApiParameter The name of the tracking API parameter, eg 'dimension1'
      * @param string $value Tracking parameter value that shall be sent for this tracking parameter.
+     * @return $this
      * @throws Exception
      */
     public function setCustomTrackingParameter($trackingApiParameter, $value)
     {
         $this->customParameters[$trackingApiParameter] = $value;
+        return $this;
     }
 
     /**
@@ -333,6 +348,7 @@ class PiwikTracker
 
     /**
      * Sets the current visitor ID to a random new one.
+     * @return $this
      */
     public function setNewVisitorId()
     {
@@ -340,26 +356,31 @@ class PiwikTracker
         $this->userId = false;
         $this->forcedVisitorId = false;
         $this->cookieVisitorId = false;
+        return $this;
     }
 
     /**
      * Sets the current site ID.
      *
      * @param int $idSite
+     * @return $this
      */
     public function setIdSite($idSite)
     {
         $this->idSite = $idSite;
+        return $this;
     }
 
     /**
      * Sets the Browser language. Used to guess visitor countries when GeoIP is not enabled
      *
      * @param string $acceptLanguage For example "fr-fr"
+     * @return $this
      */
     public function setBrowserLanguage($acceptLanguage)
     {
         $this->acceptLanguage = $acceptLanguage;
+        return $this;
     }
 
     /**
@@ -367,10 +388,12 @@ class PiwikTracker
      * If this function is not called, the User Agent will default to the current user agent.
      *
      * @param string $userAgent
+     * @return $this
      */
     public function setUserAgent($userAgent)
     {
         $this->userAgent = $userAgent;
+        return $this;
     }
 
     /**
@@ -379,10 +402,12 @@ class PiwikTracker
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
      * @param string $country
+     * @return $this
      */
     public function setCountry($country)
     {
         $this->country = $country;
+        return $this;
     }
 
     /**
@@ -391,10 +416,12 @@ class PiwikTracker
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
      * @param string $region
+     * @return $this
      */
     public function setRegion($region)
     {
         $this->region = $region;
+        return $this;
     }
 
     /**
@@ -403,10 +430,12 @@ class PiwikTracker
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
      * @param string $city
+     * @return $this
      */
     public function setCity($city)
     {
         $this->city = $city;
+        return $this;
     }
 
     /**
@@ -415,10 +444,12 @@ class PiwikTracker
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
      * @param float $lat
+     * @return $this
      */
     public function setLatitude($lat)
     {
         $this->lat = $lat;
+        return $this;
     }
 
     /**
@@ -427,10 +458,12 @@ class PiwikTracker
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
      * @param float $long
+     * @return $this
      */
     public function setLongitude($long)
     {
         $this->long = $long;
+        return $this;
     }
 
     /**
@@ -495,8 +528,7 @@ class PiwikTracker
         // NOTE: If the cookie name is changed, we must also update the method in piwik.js with the same name.
         $hash = substr(
             sha1(
-                ($this->configCookieDomain == '' ? self::getCurrentHost(
-                ) : $this->configCookieDomain) . $this->configCookiePath
+                ($this->configCookieDomain == '' ? self::getCurrentHost() : $this->configCookieDomain) . $this->configCookiePath
             ),
             0,
             4
@@ -564,7 +596,8 @@ class PiwikTracker
         $contentName,
         $contentPiece = 'Unknown',
         $contentTarget = false
-    ) {
+    )
+    {
         $url = $this->getUrlTrackContentInteraction($interaction, $contentName, $contentPiece, $contentTarget);
 
         return $this->sendRequest($url);
@@ -715,7 +748,8 @@ class PiwikTracker
         $tax = 0.0,
         $shipping = 0.0,
         $discount = 0.0
-    ) {
+    )
+    {
         $url = $this->getUrlTrackEcommerceOrder($orderId, $grandTotal, $subTotal, $tax, $shipping, $discount);
 
         return $this->sendRequest($url);
@@ -755,6 +789,7 @@ class PiwikTracker
      * @param string|array $category Category being viewed. On a Product page, this is the product's category.
      *                                You can also specify an array of up to 5 categories for a given page view.
      * @param float $price Specify the price at which the item was displayed
+     * @return $this
      */
     public function setEcommerceView($sku = '', $name = '', $category = '', $price = 0.0)
     {
@@ -775,7 +810,7 @@ class PiwikTracker
 
         // On a category page, do not record "Product name not defined"
         if (empty($sku) && empty($name)) {
-            return;
+            return $this;
         }
         if (!empty($sku)) {
             $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_SKU] = array('_pks', $sku);
@@ -784,6 +819,7 @@ class PiwikTracker
             $name = "";
         }
         $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_NAME] = array('_pkn', $name);
+        return $this;
     }
 
     /**
@@ -828,7 +864,8 @@ class PiwikTracker
         $tax = 0.0,
         $shipping = 0.0,
         $discount = 0.0
-    ) {
+    )
+    {
         if (empty($orderId)) {
             throw new Exception("You must specifiy an orderId for the Ecommerce order");
         }
@@ -1071,10 +1108,12 @@ class PiwikTracker
      * Allowed only for Super User, must be used along with setTokenAuth()
      * @see setTokenAuth()
      * @param string $dateTime Date with the format 'Y-m-d H:i:s', or a UNIX timestamp
+     * @return $this
      */
     public function setForceVisitDateTime($dateTime)
     {
         $this->forcedDatetime = $dateTime;
+        return $this;
     }
 
     /**
@@ -1082,11 +1121,12 @@ class PiwikTracker
      *
      * By default, Piwik will create a new visit if the last request by this user was more than 30 minutes ago.
      * If you call setForceNewVisit() before calling doTrack*, then a new visit will be created for this request.
-     *
+     * @return $this
      */
     public function setForceNewVisit()
     {
         $this->forcedNewVisit = true;
+        return $this;
     }
 
     /**
@@ -1095,10 +1135,12 @@ class PiwikTracker
      * Allowed only for Super User, must be used along with setTokenAuth()
      * @see setTokenAuth()
      * @param string $ip IP string, eg. 130.54.2.1
+     * @return $this
      */
     public function setIp($ip)
     {
         $this->ip = $ip;
+        return $this;
     }
 
     /**
@@ -1107,19 +1149,20 @@ class PiwikTracker
      * A User ID can be a username, UUID or an email address, or any number or string that uniquely identifies a user or client.
      *
      * @param string $userId Any user ID string (eg. email address, ID, username). Must be non empty. Set to false to de-assign a user id previously set.
+     * @return $this
      * @throws Exception
      */
     public function setUserId($userId)
     {
         if ($userId === false) {
             $this->setNewVisitorId();
-
-            return;
+            return $this;
         }
         if ($userId === '') {
             throw new Exception("User ID cannot be empty.");
         }
         $this->userId = $userId;
+        return $this;
     }
 
     /**
@@ -1147,6 +1190,7 @@ class PiwikTracker
      *
      * @deprecated We recommend to use  ->setUserId($userId).
      * @param string $visitorId 16 hexadecimal characters visitor ID, eg. "33c31e01394bdc63"
+     * @return $this
      * @throws Exception
      */
     public function setVisitorId($visitorId)
@@ -1164,6 +1208,7 @@ class PiwikTracker
             );
         }
         $this->forcedVisitorId = $visitorId;
+        return $this;
     }
 
     /**
@@ -1270,19 +1315,22 @@ class PiwikTracker
      *
      * The following features require access:
      * - force the visitor IP
-     * - force the date & time of the tracking requests rather than track for the current datetime
+     * - force the date &  time of the tracking requests rather than track for the current datetime
      *
      * @param string $token_auth token_auth 32 chars token_auth string
+     * @return $this
      */
     public function setTokenAuth($token_auth)
     {
         $this->token_auth = $token_auth;
+        return $this;
     }
 
     /**
      * Sets local visitor time
      *
      * @param string $time HH:MM:SS format
+     * @return $this
      */
     public function setLocalTime($time)
     {
@@ -1290,6 +1338,7 @@ class PiwikTracker
         $this->localHour = (int)$hour;
         $this->localMinute = (int)$minute;
         $this->localSecond = (int)$second;
+        return $this;
     }
 
     /**
@@ -1297,11 +1346,13 @@ class PiwikTracker
      *
      * @param int $width
      * @param int $height
+     * @return $this
      */
     public function setResolution($width, $height)
     {
         $this->width = $width;
         $this->height = $height;
+        return $this;
     }
 
     /**
@@ -1309,19 +1360,23 @@ class PiwikTracker
      * This is reported in "List of plugins" report in Piwik.
      *
      * @param bool $bool
+     * @return $this
      */
     public function setBrowserHasCookies($bool)
     {
         $this->hasCookies = $bool;
+        return $this;
     }
 
     /**
      * Will append a custom string at the end of the Tracking request.
      * @param string $string
+     * @return $this
      */
     public function setDebugStringAppend($string)
     {
         $this->DEBUG_APPEND_URL = '&' . $string;
+        return $this;
     }
 
     /**
@@ -1336,6 +1391,7 @@ class PiwikTracker
      * @param bool $windowsMedia
      * @param bool $gears
      * @param bool $silverlight
+     * @return $this
      */
     public function setPlugins(
         $flash = false,
@@ -1347,7 +1403,8 @@ class PiwikTracker
         $windowsMedia = false,
         $gears = false,
         $silverlight = false
-    ) {
+    )
+    {
         $this->plugins =
             '&fla=' . (int)$flash .
             '&java=' . (int)$java .
@@ -1358,6 +1415,7 @@ class PiwikTracker
             '&wma=' . (int)$windowsMedia .
             '&gears=' . (int)$gears .
             '&ag=' . (int)$silverlight;
+        return $this;
     }
 
     /**
@@ -1384,6 +1442,7 @@ class PiwikTracker
      * from Piwik.
      *
      * @param int $timeout
+     * @return $this
      * @throws Exception
      */
     public function setRequestTimeout($timeout)
@@ -1393,6 +1452,7 @@ class PiwikTracker
         }
 
         $this->requestTimeout = $timeout;
+        return $this;
     }
 
     /**
@@ -1557,7 +1617,7 @@ class PiwikTracker
             // Values collected from cookie
             '&_idts=' . $this->createTs .
             '&_idvc=' . $this->visitCount .
-            (!empty($this->lastVisitTs) ? '&_viewts=' . $this->lastVisitTs : '' ) .
+            (!empty($this->lastVisitTs) ? '&_viewts=' . $this->lastVisitTs : '') .
             (!empty($this->ecommerceLastOrderTimestamp) ?
                 '&_ects=' . urlencode($this->ecommerceLastOrderTimestamp) : '') .
 
@@ -1748,11 +1808,12 @@ class PiwikTracker
     /**
      * Sets the first party cookies as would the piwik.js
      * All cookies are supported: 'id' and 'ses' and 'ref' and 'cvar' cookies.
+     * @return $this
      */
     protected function setFirstPartyCookies()
     {
         if ($this->configCookiesDisabled) {
-            return;
+            return $this;
         }
 
         if (empty($this->cookieVisitorId)) {
@@ -1776,7 +1837,7 @@ class PiwikTracker
 
         // Set the 'cvar' cookie
         $this->setCookie('cvar', json_encode($this->visitorCustomVar), $this->configSessionCookieTimeout);
-
+        return $this;
     }
 
     /**
@@ -1787,6 +1848,7 @@ class PiwikTracker
      * @param $cookieName
      * @param $cookieValue
      * @param $cookieTTL
+     * @return $this
      */
     protected function setCookie($cookieName, $cookieValue, $cookieTTL)
     {
@@ -1800,6 +1862,7 @@ class PiwikTracker
                 $this->configCookieDomain
             );
         }
+        return $this;
     }
 
     /**
