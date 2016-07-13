@@ -672,7 +672,7 @@ class PiwikTracker
 
         $price = $this->forceDotAsSeparatorForDecimalPoint($price);
 
-        $this->ecommerceItems[$sku] = array($sku, $name, $category, $price, $quantity);
+        $this->ecommerceItems[] = array($sku, $name, $category, $price, $quantity);
     }
 
     /**
@@ -878,8 +878,10 @@ class PiwikTracker
 
     /**
      * Returns URL used to track Ecommerce orders
+     *
      * Calling this function will reinitializes the property ecommerceItems to empty array
      * so items will have to be added again via addEcommerceItem()
+     *
      * @ignore
      */
     protected function getUrlTrackEcommerce($grandTotal, $subTotal = 0.0, $tax = 0.0, $shipping = 0.0, $discount = 0.0)
@@ -911,12 +913,7 @@ class PiwikTracker
             $url .= '&ec_dt=' . $discount;
         }
         if (!empty($this->ecommerceItems)) {
-            // Removing the SKU index in the array before JSON encoding
-            $items = array();
-            foreach ($this->ecommerceItems as $item) {
-                $items[] = $item;
-            }
-            $url .= '&ec_items=' . urlencode(json_encode($items));
+            $url .= '&ec_items=' . urlencode(json_encode($this->ecommerceItems));
         }
         $this->ecommerceItems = array();
 
