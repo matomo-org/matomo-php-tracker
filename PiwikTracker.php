@@ -555,7 +555,7 @@ class PiwikTracker
 
     private function generateNewPageviewId()
     {
-        $this->idPageview = substr(md5(uniqid(rand(), true)), 0, 16);
+        $this->idPageview = substr(md5(uniqid(rand(), true)), 0, 6);
     }
 
     /**
