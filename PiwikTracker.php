@@ -1453,6 +1453,29 @@ class PiwikTracker
     }
 
     /**
+     * If a proxy is needed to look up the address of the Piwik site, set it with this
+     * @param string $proxy IP as string, for example "173.234.92.107"
+     * @param int $proxyPort
+     */
+    public function setProxy($proxy, $proxyPort = 80)
+    {
+        $this->proxy = $proxy;
+        $this->proxyPort = $proxyPort;
+    }
+
+    /**
+     * If the proxy IP and the proxy port have been set, with the setProxy() function
+     * returns a string, like "173.234.92.107:80"
+     */
+    private function getProxy()
+    {
+        if (isset($this->proxy) && isset($this->proxyPort)) {
+            return $this->proxy.":".$this->proxyPort;
+        }
+        return null;
+    }
+
+    /**
      * Used in tests to output useful error messages.
      *
      * @ignore
@@ -1482,6 +1505,8 @@ class PiwikTracker
             return true;
         }
 
+        $proxy = $this->getProxy();
+
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
                 CURLOPT_URL => $url,
@@ -1496,6 +1521,10 @@ class PiwikTracker
 
             if (defined('PATH_TO_CERTIFICATES_FILE')) {
                 $options[CURLOPT_CAINFO] = PATH_TO_CERTIFICATES_FILE;
+            }
+
+            if (isset($proxy)) {
+                $options[CURLOPT_PROXY] = $proxy;
             }
 
             switch ($method) {
@@ -1522,26 +1551,30 @@ class PiwikTracker
             if (!empty($response)) {
                 list($header, $content) = explode("\r\n\r\n", $response, $limitCount = 2);
             }
-        } else {
-            if (function_exists('stream_context_create')) {
-                $stream_options = array(
-                    'http' => array(
-                        'method' => $method,
-                        'user_agent' => $this->userAgent,
-                        'header' => "Accept-Language: " . $this->acceptLanguage . "\r\n",
-                        'timeout' => $this->requestTimeout, // PHP 5.2.1
-                    ),
-                );
 
-                // only supports JSON data
-                if (!empty($data)) {
-                    $stream_options['http']['header'] .= "Content-Type: application/json \r\n";
-                    $stream_options['http']['content'] = $data;
-                }
-                $ctx = stream_context_create($stream_options);
-                $response = file_get_contents($url, 0, $ctx);
-                $content = $response;
+        } elseif (function_exists('stream_context_create')) {
+            $stream_options = array(
+                'http' => array(
+                    'method' => $method,
+                    'user_agent' => $this->userAgent,
+                    'header' => "Accept-Language: " . $this->acceptLanguage . "\r\n",
+                    'timeout' => $this->requestTimeout, // PHP 5.2.1
+                ),
+            );
+
+            if (isset($proxy)) {
+                $stream_options['http']['proxy'] = $proxy;
             }
+
+            // only supports JSON data
+            if (!empty($data)) {
+                $stream_options['http']['header'] .= "Content-Type: application/json \r\n";
+                $stream_options['http']['content'] = $data;
+            }
+
+            $ctx = stream_context_create($stream_options);
+            $response = file_get_contents($url, 0, $ctx);
+            $content = $response;
         }
 
         return $content;
