@@ -1302,14 +1302,13 @@ class PiwikTracker
      * If the proxy IP and the proxy port have been set, with the setProxy() function
      * returns a string, like "173.234.92.107:80"
      */
-    public function getProxy()
+    private function getProxy()
     {
         if (isset($this->proxy) && isset($this->proxyPort)) {
             return $this->proxy.":".$this->proxyPort;
         }
         return null;
     }
-
 
     /**
      * Used in tests to output useful error messages.
@@ -1353,7 +1352,7 @@ class PiwikTracker
 
 
 
-            if($proxy != null){
+            if ($proxy != null) {
                 $options[CURLOPT_PROXY] = $proxy;
             }
 
@@ -1393,7 +1392,8 @@ class PiwikTracker
                 )
             );
 
-            if($proxy != null){
+			// @TODO Test if it works with other protocols like TCP/IP
+            if ($proxy != null) {
                 $stream_options['http']['proxy'] = $proxy;
             }
 
