@@ -1102,9 +1102,10 @@ class PiwikTracker
      * By default Piwik will track requests for the "current datetime" but this function allows you
      * to track visits in the past. All times are in UTC.
      *
-     * Allowed only for Super User, must be used along with setTokenAuth()
+     * Allowed only for Admin/Super User, must be used along with setTokenAuth()
      * @see setTokenAuth()
-     * @param string $dateTime Date with the format 'Y-m-d H:i:s', or a UNIX timestamp
+     * @param string $dateTime Date with the format 'Y-m-d H:i:s', or a UNIX timestamp. 
+     *               If the datetime is older than one day (default value for tracking_requests_require_authentication_when_custom_timestamp_newer_than), then you must call setTokenAuth() with a valid Admin/Super user token.
      * @return $this
      */
     public function setForceVisitDateTime($dateTime)
@@ -1129,7 +1130,7 @@ class PiwikTracker
     /**
      * Overrides IP address
      *
-     * Allowed only for Super User, must be used along with setTokenAuth()
+     * Allowed only for Admin/Super User, must be used along with setTokenAuth()
      * @see setTokenAuth()
      * @param string $ip IP string, eg. 130.54.2.1
      * @return $this
@@ -1636,7 +1637,7 @@ class PiwikTracker
                 '&XDEBUG_SESSION_START=' . @urlencode($_GET['XDEBUG_SESSION_START']) : '') .
             (!empty($_GET['KEY']) ? '&KEY=' . @urlencode($_GET['KEY']) : '') .
 
-            // Only allowed for Super User, token_auth required,
+            // Only allowed for Admin/Super User, token_auth required,
             (!empty($this->ip) ? '&cip=' . $this->ip : '') .
             (!empty($this->userId) ? '&uid=' . urlencode($this->userId) : '') .
             (!empty($this->forcedDatetime) ? '&cdt=' . urlencode($this->forcedDatetime) : '') .
