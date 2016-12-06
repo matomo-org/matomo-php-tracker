@@ -105,6 +105,7 @@ class PiwikTracker
         $this->localHour = false;
         $this->localMinute = false;
         $this->localSecond = false;
+        $this->idPageview = false;
 
         $this->idSite = $idSite;
         $this->urlReferrer = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
@@ -545,9 +546,16 @@ class PiwikTracker
      */
     public function doTrackPageView($documentTitle)
     {
+        $this->generateNewPageviewId();
+
         $url = $this->getUrlTrackPageView($documentTitle);
 
         return $this->sendRequest($url);
+    }
+
+    private function generateNewPageviewId()
+    {
+        $this->idPageview = substr(md5(uniqid(rand(), true)), 0, 6);
     }
 
     /**
@@ -1672,6 +1680,9 @@ class PiwikTracker
             '&urlref=' . urlencode($this->urlReferrer) .
             ((!empty($this->pageCharset) && $this->pageCharset != self::DEFAULT_CHARSET_PARAMETER_VALUES) ?
                 '&cs=' . $this->pageCharset : '') .
+
+            // unique pageview id
+            (!empty($this->idPageview) ? '&pv_id=' . urlencode($this->idPageview) : '') .
 
             // Attribution information, so that Goal conversions are attributed to the right referrer or campaign
             // Campaign name
