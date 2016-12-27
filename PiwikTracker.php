@@ -70,6 +70,12 @@ class PiwikTracker
     const CVAR_INDEX_ECOMMERCE_ITEM_NAME = 4;
     const CVAR_INDEX_ECOMMERCE_ITEM_CATEGORY = 5;
 
+    /**
+     * Defines how many categories can be used max when calling addEcommerceItem().
+     * @var int
+     */
+    const MAX_NUM_ECOMMERCE_ITEM_CATEGORIES = 5;
+
     const DEFAULT_COOKIE_PATH = '/';
 
     /**
