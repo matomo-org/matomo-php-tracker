@@ -1250,6 +1250,23 @@ class PiwikTracker
         return $this->randomVisitorId;
     }
 
+    /**
+     * Returns the currently set user agent.
+     * @return string
+     */
+    public function getUserAgent()
+    {
+        return $this->userAgent;
+    }
+
+    /**
+     * Returns the currently set IP address.
+     * @return string
+     */
+    public function getIp()
+    {
+        return $this->ip;
+    }
 
     /**
      * Returns the User ID string, which may have been set via:
