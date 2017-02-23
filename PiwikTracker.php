@@ -1515,6 +1515,21 @@ class PiwikTracker
     static public $DEBUG_LAST_REQUESTED_URL = false;
 
     /**
+     * Sends a simple request to the Piwik tracking API to test whether the configured Piwik URL is valid.
+     * It won't actually track any data, only test whether the configured tracking URL looks valid.
+     *
+     * @return bool
+     */
+    public function ping()
+    {
+        // we only use the base url to make sure to not track any data when this method is called.
+        $url = $this->getBaseUrl();
+        $response = $this->sendRequest($url);
+
+        return strpos(strtolower($response), 'piwik') !== false;
+    }
+
+    /**
      * @ignore
      */
     protected function sendRequest($url, $method = 'GET', $data = null, $force = false)
