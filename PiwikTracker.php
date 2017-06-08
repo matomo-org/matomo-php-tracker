@@ -1652,9 +1652,7 @@ class PiwikTracker
 
         $customFields = '';
         if (!empty($this->customParameters)) {
-            foreach ($this->customParameters as $parameter => $value) {
-                $customFields .= '&' . urlencode($parameter) . '=' . urlencode($value);
-            }
+            $customFields = '&' . http_build_query($this->customParameters, '', '&');
         }
 
         $url = $this->getBaseUrl() .
