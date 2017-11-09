@@ -158,6 +158,9 @@ class PiwikTracker
         $this->sendImageResponse = true;
 
         $this->visitorCustomVar = $this->getCustomVariablesFromCookie();
+        
+        $this->outgoingTrackerCookies = array();
+        $this->incomingTrackerCookies = array();
     }
 
     /**
@@ -1574,15 +1577,23 @@ class PiwikTracker
                 $options[CURLOPT_POSTFIELDS] = $data;
             }
 
+            if (!empty($this->outgoingTrackerCookies)) {
+                $options[CURLOPT_COOKIE] = http_build_query($this->outgoingTrackerCookies);
+                $this->outgoingTrackerCookies = array();
+            }
+            
             $ch = curl_init();
             curl_setopt_array($ch, $options);
             ob_start();
             $response = @curl_exec($ch);
             ob_end_clean();
+            $header = '';
             $content = '';
             if (!empty($response)) {
                 list($header, $content) = explode("\r\n\r\n", $response, $limitCount = 2);
             }
+            
+            $this->parseIncomingCookies(explode("\r\n", $header));
 
         } elseif (function_exists('stream_context_create')) {
             $stream_options = array(
@@ -1604,9 +1615,16 @@ class PiwikTracker
                 $stream_options['http']['content'] = $data;
             }
 
+            if (!empty($this->outgoingTrackerCookies)) {
+                $stream_options['http']['header'] .= 'Cookie: ' . http_build_query($this->outgoingTrackerCookies) . "\r\n";
+                $this->outgoingTrackerCookies = array();
+            }
+            
             $ctx = stream_context_create($stream_options);
             $response = file_get_contents($url, 0, $ctx);
             $content = $response;
+            
+            $this->parseIncomingCookies($http_response_header);
         }
 
         return $content;
@@ -1939,6 +1957,65 @@ class PiwikTracker
         }
 
         return json_decode($cookie, $assoc = true);
+    }
+
+    /**
+     * Sets a cookie to be sent to the tracking server.
+     *
+     * @param $name
+     * @param $value
+     */
+    public function setOutgoingTrackerCookie($name, $value)
+    {
+        if ($value === null) {
+            unset($this->outgoingTrackerCookies[$name]);
+        }
+        else {
+            $this->outgoingTrackerCookies[$name] = $value;
+        }
+    }
+  
+    /**
+     * Gets a cookie which was set by the tracking server.
+     *
+     * @param $name
+     *
+     * @return bool|string
+     */
+    public function getIncomingTrackerCookie($name)
+    {
+        if (isset($this->incomingTrackerCookies[$name])) {
+            return $this->incomingTrackerCookies[$name];
+        }
+        
+        return false;
+    }
+
+    /**
+     * Reads incoming tracking server cookies.
+     *
+     * @param $headers Array with HTTP response headers as values
+     */
+    protected function parseIncomingCookies($headers)
+    {
+        $this->incomingTrackerCookies = array();
+        
+        if (!empty($headers)) {
+            $headerName = 'set-cookie:';
+            $headerNameLength = strlen($headerName);
+            
+            foreach($headers as $header) {
+                if (strpos(strtolower($header), $headerName) !== 0) {
+                    continue;
+                }
+                $cookies = trim(substr($header, $headerNameLength));
+                $posEnd = strpos($cookies, ';');
+                if ($posEnd !== false) {
+                    $cookies = substr($cookies, 0, $posEnd);
+                }
+                parse_str($cookies, $this->incomingTrackerCookies);
+            }
+        }   
     }
 }
 
