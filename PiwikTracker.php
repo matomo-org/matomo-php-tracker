@@ -1163,20 +1163,31 @@ class PiwikTracker
      *
      * A User ID can be a username, UUID or an email address, or any number or string that uniquely identifies a user or client.
      *
-     * @param string $userId Any user ID string (eg. email address, ID, username). Must be non empty. Set to false to de-assign a user id previously set.
+     * Call resetUserId() to de-assign a user id previously set.
+     *
+     * @param string $userId Any user ID string (eg. email address, ID, username). Must be non empty.
      * @return $this
      * @throws Exception
      */
     public function setUserId($userId)
     {
         if ($userId === false) {
-            $this->setNewVisitorId();
+            $this->resetUserId();
             return $this;
         }
         if ($userId === '') {
             throw new Exception("User ID cannot be empty.");
         }
         $this->userId = $userId;
+        return $this;
+    }
+
+    /**
+     * Clears the User ID and generates a new visitor id.
+     */
+    public function resetUserId()
+    {
+        $this->setNewVisitorId();
         return $this;
     }
 
