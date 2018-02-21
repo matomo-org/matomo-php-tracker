@@ -1549,6 +1549,7 @@ class PiwikTracker
                 CURLOPT_HEADER => true,
                 CURLOPT_TIMEOUT => $this->requestTimeout,
                 CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTPHEADER => array(
                     'Accept-Language: ' . $this->acceptLanguage,
                 ),
