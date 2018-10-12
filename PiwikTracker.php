@@ -1654,6 +1654,8 @@ class PiwikTracker
         }
         if (strpos(self::$URL, '/piwik.php') === false
             && strpos(self::$URL, '/proxy-piwik.php') === false
+            && strpos(self::$URL, '/matomo.php') === false
+            && strpos(self::$URL, '/proxy-matomo.php') === false
         ) {
             self::$URL .= '/piwik.php';
         }
