@@ -1687,7 +1687,7 @@ class PiwikTracker
             (!empty($_GET['KEY']) ? '&KEY=' . @urlencode($_GET['KEY']) : '') .
 
             // Only allowed for Admin/Super User, token_auth required,
-            (!empty($this->ip) ? '&cip=' . $this->ip : '') .
+            ((!empty($this->ip) && !empty($this->token_auth)) ? '&cip=' . $this->ip : '') .
             (!empty($this->userId) ? '&uid=' . urlencode($this->userId) : '') .
             (!empty($this->forcedDatetime) ? '&cdt=' . urlencode($this->forcedDatetime) : '') .
             (!empty($this->forcedNewVisit) ? '&new_visit=1' : '') .
