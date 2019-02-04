@@ -27,6 +27,7 @@ class PiwikTracker
      * PiwikTracker::$URL = 'http://yourwebsite.org/piwik/';
      *
      * @var string
+     * @deprecated use setTrackerUrl instead
      */
     static public $URL = '';
 
@@ -123,6 +124,7 @@ class PiwikTracker
         if (!empty($apiUrl)) {
             self::$URL = $apiUrl;
         }
+        $this->trackerUrl = $apiUrl;
 
         // Life of the visitor cookie (in sec)
         $this->configVisitorCookieTimeout = 33955200; // 13 months (365 + 28 days)
@@ -158,9 +160,19 @@ class PiwikTracker
         $this->sendImageResponse = true;
 
         $this->visitorCustomVar = $this->getCustomVariablesFromCookie();
-        
+
         $this->outgoingTrackerCookies = array();
         $this->incomingTrackerCookies = array();
+    }
+
+    /**
+     * Sets (overwrites) the Matomo base URL, for example http://example.org/matomo/.
+     *
+     * @param string $trackerUrl
+     */
+    public function setTrackerUrl($trackerUrl)
+    {
+        $this->trackerUrl = $trackerUrl;
     }
 
     /**
@@ -1121,7 +1133,7 @@ class PiwikTracker
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth()
      * @see setTokenAuth()
-     * @param string $dateTime Date with the format 'Y-m-d H:i:s', or a UNIX timestamp. 
+     * @param string $dateTime Date with the format 'Y-m-d H:i:s', or a UNIX timestamp.
      *               If the datetime is older than one day (default value for tracking_requests_require_authentication_when_custom_timestamp_newer_than), then you must call setTokenAuth() with a valid Admin/Super user token.
      * @return $this
      */
@@ -1581,7 +1593,7 @@ class PiwikTracker
                 $options[CURLOPT_COOKIE] = http_build_query($this->outgoingTrackerCookies);
                 $this->outgoingTrackerCookies = array();
             }
-            
+
             $ch = curl_init();
             curl_setopt_array($ch, $options);
             ob_start();
@@ -1592,7 +1604,7 @@ class PiwikTracker
             if (!empty($response)) {
                 list($header, $content) = explode("\r\n\r\n", $response, $limitCount = 2);
             }
-            
+
             $this->parseIncomingCookies(explode("\r\n", $header));
 
         } elseif (function_exists('stream_context_create')) {
@@ -1619,11 +1631,11 @@ class PiwikTracker
                 $stream_options['http']['header'] .= 'Cookie: ' . http_build_query($this->outgoingTrackerCookies) . "\r\n";
                 $this->outgoingTrackerCookies = array();
             }
-            
+
             $ctx = stream_context_create($stream_options);
             $response = file_get_contents($url, 0, $ctx);
             $content = $response;
-            
+
             $this->parseIncomingCookies($http_response_header);
         }
 
@@ -1646,21 +1658,29 @@ class PiwikTracker
      */
     protected function getBaseUrl()
     {
-        if (empty(self::$URL)) {
+        if (empty($this->trackerUrl) && !empty(self::$URL)) {
+            // for BC
+            $this->trackerUrl = self::$URL;
+        }
+
+        // for BC
+        self::$URL = $this->trackerUrl;
+
+        if (empty($this->trackerUrl)) {
             throw new Exception(
                 'You must first set the Piwik Tracker URL by calling
                  PiwikTracker::$URL = \'http://your-website.org/piwik/\';'
             );
         }
-        if (strpos(self::$URL, '/piwik.php') === false
-            && strpos(self::$URL, '/proxy-piwik.php') === false
-            && strpos(self::$URL, '/matomo.php') === false
-            && strpos(self::$URL, '/proxy-matomo.php') === false
+        if (strpos($this->trackerUrl, '/piwik.php') === false
+            && strpos($this->trackerUrl, '/proxy-piwik.php') === false
+            && strpos($this->trackerUrl, '/matomo.php') === false
+            && strpos($this->trackerUrl, '/proxy-matomo.php') === false
         ) {
-            self::$URL .= '/piwik.php';
+            $this->trackerUrl .= '/piwik.php';
         }
 
-        return self::$URL;
+        return $this->trackerUrl;
     }
 
     /**
@@ -1883,9 +1903,9 @@ class PiwikTracker
     protected static function getCurrentUrl()
     {
         return self::getCurrentScheme() . '://'
-        . self::getCurrentHost()
-        . self::getCurrentScriptName()
-        . self::getCurrentQueryString();
+            . self::getCurrentHost()
+            . self::getCurrentScriptName()
+            . self::getCurrentQueryString();
     }
 
     /**
@@ -1976,7 +1996,7 @@ class PiwikTracker
             $this->outgoingTrackerCookies[$name] = $value;
         }
     }
-  
+
     /**
      * Gets a cookie which was set by the tracking server.
      *
@@ -1989,7 +2009,7 @@ class PiwikTracker
         if (isset($this->incomingTrackerCookies[$name])) {
             return $this->incomingTrackerCookies[$name];
         }
-        
+
         return false;
     }
 
@@ -2001,11 +2021,11 @@ class PiwikTracker
     protected function parseIncomingCookies($headers)
     {
         $this->incomingTrackerCookies = array();
-        
+
         if (!empty($headers)) {
             $headerName = 'set-cookie:';
             $headerNameLength = strlen($headerName);
-            
+
             foreach($headers as $header) {
                 if (strpos(strtolower($header), $headerName) !== 0) {
                     continue;
@@ -2017,7 +2037,7 @@ class PiwikTracker
                 }
                 parse_str($cookies, $this->incomingTrackerCookies);
             }
-        }   
+        }
     }
 }
 
