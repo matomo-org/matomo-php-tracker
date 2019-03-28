@@ -12,9 +12,9 @@
  */
 
 /**
- * PiwikTracker implements the Piwik Tracking Web API.
+ * PiwikTracker implements the Matomo Tracking Web API.
  *
- * For more information, see README.md
+ * For more information, see: https://github.com/matomo-org/matomo-php-tracker/
  *
  * @package PiwikTracker
  * @api
