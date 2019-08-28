@@ -516,7 +516,7 @@ class PiwikTracker
         if (strlen($domain) > 0) {
             $dl = strlen($domain) - 1;
             // remove trailing '.'
-            if ($domain{$dl} === '.') {
+            if ($domain[$dl] === '.') {
                 $domain = substr($domain, 0, $dl);
             }
             // remove leading '*'
