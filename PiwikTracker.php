@@ -680,6 +680,7 @@ class PiwikTracker
      * @param float|int $price (optional) Individual product price (supports integer and decimal prices)
      * @param int $quantity (optional) Product quantity. If not specified, will default to 1 in the Reports
      * @throws Exception
+     * @return $this
      */
     public function addEcommerceItem($sku, $name = '', $category = '', $price = 0.0, $quantity = 1)
     {
@@ -690,6 +691,7 @@ class PiwikTracker
         $price = $this->forceDotAsSeparatorForDecimalPoint($price);
 
         $this->ecommerceItems[] = array($sku, $name, $category, $price, $quantity);
+        return $this;
     }
 
     /**
