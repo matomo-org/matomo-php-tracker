@@ -1685,7 +1685,7 @@ class PiwikTracker
         }
 
         $url = $baseUrl . $start .
-            '?idsite=' . $idSite .
+            'idsite=' . $idSite .
             '&rec=1' .
             '&apiv=' . self::VERSION .
             '&r=' . substr(strval(mt_rand()), 2, 6) .
