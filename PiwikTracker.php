@@ -1680,8 +1680,14 @@ class PiwikTracker
             $customFields = '&' . http_build_query($this->customParameters, '', '&');
         }
 
-        $url = $this->getBaseUrl() .
-            '?idsite=' . $idSite .
+        $baseUrl = $this->getBaseUrl();
+        $start = '?';
+        if (strpos($baseUrl, '?') !== false) {
+            $start = '&';
+        }
+
+        $url = $baseUrl . $start .
+            'idsite=' . $idSite .
             '&rec=1' .
             '&apiv=' . self::VERSION .
             '&r=' . substr(strval(mt_rand()), 2, 6) .
