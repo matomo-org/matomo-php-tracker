@@ -363,7 +363,6 @@ class PiwikTracker
     public function setNewVisitorId()
     {
         $this->randomVisitorId = substr(md5(uniqid(rand(), true)), 0, self::LENGTH_VISITOR_ID);
-        $this->userId = false;
         $this->forcedVisitorId = false;
         $this->cookieVisitorId = false;
         return $this;
@@ -1171,10 +1170,6 @@ class PiwikTracker
      */
     public function setUserId($userId)
     {
-        if ($userId === false) {
-            $this->setNewVisitorId();
-            return $this;
-        }
         if ($userId === '') {
             throw new Exception("User ID cannot be empty.");
         }
@@ -1197,15 +1192,12 @@ class PiwikTracker
 
     /**
      * Forces the requests to be recorded for the specified Visitor ID.
-     * Note: it is recommended to use ->setUserId($userId); instead.
      *
      * Rather than letting Piwik attribute the user with a heuristic based on IP and other user fingeprinting attributes,
      * force the action to be recorded for a particular visitor.
      *
-     * If you use both setVisitorId and setUserId, setUserId will take precedence.
      * If not set, the visitor ID will be fetched from the 1st party cookie, or will be set to a random UUID.
      *
-     * @deprecated We recommend to use  ->setUserId($userId).
      * @param string $visitorId 16 hexadecimal characters visitor ID, eg. "33c31e01394bdc63"
      * @return $this
      * @throws Exception
@@ -1242,9 +1234,6 @@ class PiwikTracker
      */
     public function getVisitorId()
     {
-        if (!empty($this->userId)) {
-            return $this->getUserIdHashed($this->userId);
-        }
         if (!empty($this->forcedVisitorId)) {
             return $this->forcedVisitorId;
         }
