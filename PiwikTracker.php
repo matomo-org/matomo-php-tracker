@@ -1539,13 +1539,14 @@ class PiwikTracker
                 CURLOPT_USERAGENT => $this->userAgent,
                 CURLOPT_HEADER => true,
                 CURLOPT_TIMEOUT => $this->requestTimeout,
+                CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_HTTPHEADER => array(
                     'Accept-Language: ' . $this->acceptLanguage,
                 ),
             );
 
             if ($method === 'GET') {
-                $options[CURLOPT_RETURNTRANSFER] = true;
+                $options[CURLOPT_FOLLOWLOCATION] = true;
             }
 
             if (defined('PATH_TO_CERTIFICATES_FILE')) {
