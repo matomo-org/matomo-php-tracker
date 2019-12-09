@@ -1,30 +1,30 @@
 <?php
 /**
- * Piwik - free/libre analytics platform
+ * Matomo - free/libre analytics platform
  *
  * For more information, see README.md
  *
  * @license released under BSD License http://www.opensource.org/licenses/bsd-license.php
- * @link http://piwik.org/docs/tracking-api/
+ * @link https://matomo.org/docs/tracking-api/
  *
- * @category Piwik
- * @package PiwikTracker
+ * @category Matomo
+ * @package MatomoTracker
  */
 
 /**
- * PiwikTracker implements the Matomo Tracking Web API.
+ * MatomoTracker implements the Matomo Tracking Web API.
  *
  * For more information, see: https://github.com/matomo-org/matomo-php-tracker/
  *
- * @package PiwikTracker
+ * @package MatomoTracker
  * @api
  */
-class PiwikTracker
+class MatomoTracker
 {
     /**
-     * Piwik base URL, for example http://example.org/piwik/
+     * Matomo base URL, for example http://example.org/matomo/
      * Must be set before using the class by calling
-     * PiwikTracker::$URL = 'http://yourwebsite.org/piwik/';
+     * MatomoTracker::$URL = 'http://yourwebsite.org/matomo/';
      *
      * @var string
      */
@@ -58,7 +58,7 @@ class PiwikTracker
     const DEFAULT_CHARSET_PARAMETER_VALUES = 'utf-8';
 
     /**
-     * See piwik.js
+     * See matomo.js
      */
     const FIRST_PARTY_COOKIES_PREFIX = '_pk_';
 
@@ -79,12 +79,12 @@ class PiwikTracker
     const DEFAULT_COOKIE_PATH = '/';
 
     /**
-     * Builds a PiwikTracker object, used to track visits, pages and Goal conversions
-     * for a specific website, by using the Piwik Tracking API.
+     * Builds a MatomoTracker object, used to track visits, pages and Goal conversions
+     * for a specific website, by using the Matomo Tracking API.
      *
      * @param int $idSite Id site to be tracked
-     * @param string $apiUrl "http://example.org/piwik/" or "http://piwik.example.org/"
-     *                         If set, will overwrite PiwikTracker::$URL
+     * @param string $apiUrl "http://example.org/matomo/" or "http://matomo.example.org/"
+     *                         If set, will overwrite MatomoTracker::$URL
      */
     public function __construct($idSite, $apiUrl = '')
     {
@@ -164,9 +164,9 @@ class PiwikTracker
     }
 
     /**
-     * By default, Piwik expects utf-8 encoded values, for example
+     * By default, Matomo expects utf-8 encoded values, for example
      * for the page URL parameter values, Page Title, etc.
-     * It is recommended to only send UTF-8 data to Piwik.
+     * It is recommended to only send UTF-8 data to Matomo.
      * If required though, you can also specify another charset using this function.
      *
      * @param string $charset
@@ -229,7 +229,7 @@ class PiwikTracker
      * properly attributed to the right Referrer URL, timestamp, Campaign Name & Keyword.
      *
      * This must be a JSON encoded string that would typically be fetched from the JS API:
-     * piwikTracker.getAttributionInfo() and that you have JSON encoded via JSON2.stringify()
+     * matomoTracker.getAttributionInfo() and that you have JSON encoded via JSON2.stringify()
      *
      * If you call enableCookies() then these referral attribution values will be set
      * to the 'ref' first party cookie storing referral information.
@@ -237,7 +237,7 @@ class PiwikTracker
      * @param string $jsonEncoded JSON encoded array containing Attribution info
      * @return $this
      * @throws Exception
-     * @see function getAttributionInfo() in https://github.com/piwik/piwik/blob/master/js/piwik.js
+     * @see function getAttributionInfo() in https://github.com/matomo-org/matomo/blob/master/js/matomo.js
      */
     public function setAttributionInfo($jsonEncoded)
     {
@@ -251,7 +251,7 @@ class PiwikTracker
 
     /**
      * Sets Visit Custom Variable.
-     * See http://piwik.org/docs/custom-variables/
+     * See https://matomo.org/docs/custom-variables/
      *
      * @param int $id Custom variable slot ID from 1-5
      * @param string $name Custom variable name
@@ -280,7 +280,7 @@ class PiwikTracker
     /**
      * Returns the currently assigned Custom Variable.
      *
-     * If scope is 'visit', it will attempt to read the value set in the first party cookie created by Piwik Tracker
+     * If scope is 'visit', it will attempt to read the value set in the first party cookie created by Matomo Tracker
      *  ($_COOKIE array).
      *
      * @param int $id Custom Variable integer index to fetch from cookie. Should be a value from 1 to 5
@@ -288,7 +288,7 @@ class PiwikTracker
      *
      * @throws Exception
      * @return mixed An array with this format: array( 0 => CustomVariableName, 1 => CustomVariableValue ) or false
-     * @see Piwik.js getCustomVariable()
+     * @see matomo.js getCustomVariable()
      */
     public function getCustomVariable($id, $scope = 'visit')
     {
@@ -334,7 +334,7 @@ class PiwikTracker
 
     /**
      * Sets a custom tracking parameter. This is useful if you need to send any tracking parameters for a 3rd party
-     * plugin that is not shipped with Piwik itself. Please note that custom parameters are cleared after each
+     * plugin that is not shipped with Matomo itself. Please note that custom parameters are cleared after each
      * tracking request.
      *
      * @param string $trackingApiParameter The name of the tracking API parameter, eg 'dimension1'
@@ -406,7 +406,7 @@ class PiwikTracker
     }
 
     /**
-     * Sets the country of the visitor. If not used, Piwik will try to find the country
+     * Sets the country of the visitor. If not used, Matomo will try to find the country
      * using either the visitor's IP address or language.
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
@@ -420,7 +420,7 @@ class PiwikTracker
     }
 
     /**
-     * Sets the region of the visitor. If not used, Piwik may try to find the region
+     * Sets the region of the visitor. If not used, Matomo may try to find the region
      * using the visitor's IP address (if configured to do so).
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
@@ -434,7 +434,7 @@ class PiwikTracker
     }
 
     /**
-     * Sets the city of the visitor. If not used, Piwik may try to find the city
+     * Sets the city of the visitor. If not used, Matomo may try to find the city
      * using the visitor's IP address (if configured to do so).
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
@@ -448,7 +448,7 @@ class PiwikTracker
     }
 
     /**
-     * Sets the latitude of the visitor. If not used, Piwik may try to find the visitor's
+     * Sets the latitude of the visitor. If not used, Matomo may try to find the visitor's
      * latitude using the visitor's IP address (if configured to do so).
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
@@ -462,7 +462,7 @@ class PiwikTracker
     }
 
     /**
-     * Sets the longitude of the visitor. If not used, Piwik may try to find the visitor's
+     * Sets the longitude of the visitor. If not used, Matomo may try to find the visitor's
      * longitude using the visitor's IP address (if configured to do so).
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
@@ -500,7 +500,7 @@ class PiwikTracker
     }
 
     /**
-     * If image response is disabled Piwik will respond with a HTTP 204 header instead of responding with a gif.
+     * If image response is disabled Matomo will respond with a HTTP 204 header instead of responding with a gif.
      */
     public function disableSendImageResponse()
     {
@@ -534,7 +534,7 @@ class PiwikTracker
      */
     protected function getCookieName($cookieName)
     {
-        // NOTE: If the cookie name is changed, we must also update the method in piwik.js with the same name.
+        // NOTE: If the cookie name is changed, we must also update the method in matomo.js with the same name.
         $hash = substr(
             sha1(
                 ($this->configCookieDomain == '' ? self::getCurrentHost() : $this->configCookieDomain) . $this->configCookiePath
@@ -746,12 +746,12 @@ class PiwikTracker
      * Tracks an Ecommerce order.
      *
      * If the Ecommerce order contains items (products), you must call first the addEcommerceItem() for each item in the order.
-     * All revenues (grandTotal, subTotal, tax, shipping, discount) will be individually summed and reported in Piwik reports.
+     * All revenues (grandTotal, subTotal, tax, shipping, discount) will be individually summed and reported in Matomo reports.
      * Only the parameters $orderId and $grandTotal are required.
      *
      * @param string|int $orderId (required) Unique Order ID.
      *                This will be used to count this order only once in the event the order page is reloaded several times.
-     *                orderId must be unique for each transaction, even on different days, or the transaction will not be recorded by Piwik.
+     *                orderId must be unique for each transaction, even on different days, or the transaction will not be recorded by Matomo.
      * @param float $grandTotal (required) Grand Total revenue of the transaction (including tax, shipping, etc.)
      * @param float $subTotal (optional) Sub total amount, typically the sum of items prices for all items in this order (before Tax and Shipping costs are applied)
      * @param float $tax (optional) Tax amount for this order
@@ -799,7 +799,7 @@ class PiwikTracker
      *
      * On a category page, you may set the parameter $category only and set the other parameters to false.
      *
-     * Tracking Product/Category page views will allow Piwik to report on Product & Categories
+     * Tracking Product/Category page views will allow Matomo to report on Product & Categories
      * conversion rates (Conversion rate = Ecommerce orders containing this product or category / Visits to the product or category)
      *
      * @param string $sku Product SKU being viewed
@@ -841,7 +841,7 @@ class PiwikTracker
     }
 
     /**
-     * Force the separator for decimal point to be a dot. See https://github.com/piwik/piwik/issues/6435
+     * Force the separator for decimal point to be a dot. See https://github.com/matomo-org/matomo/issues/6435
      * If for instance a German locale is used it would be a comma otherwise.
      *
      * @param  float|string $value
@@ -942,8 +942,8 @@ class PiwikTracker
      * Builds URL to track a page view.
      *
      * @see doTrackPageView()
-     * @param string $documentTitle Page view name as it will appear in Piwik reports
-     * @return string URL to piwik.php with all parameters set to track the pageview
+     * @param string $documentTitle Page view name as it will appear in Matomo reports
+     * @return string URL to matomo.php with all parameters set to track the pageview
      */
     public function getUrlTrackPageView($documentTitle = '')
     {
@@ -963,7 +963,7 @@ class PiwikTracker
      * @param string $action The Event's Action (Play, Pause, Duration, Add Playlist, Downloaded, Clicked...)
      * @param string|bool $name (optional) The Event's object Name (a particular Movie name, or Song name, or File name...)
      * @param float|bool $value (optional) The Event's value
-     * @return string URL to piwik.php with all parameters set to track the pageview
+     * @return string URL to matomo.php with all parameters set to track the pageview
      * @throws
      */
     public function getUrlTrackEvent($category, $action, $name = false, $value = false)
@@ -998,7 +998,7 @@ class PiwikTracker
      * @param string $contentPiece The actual content. For instance the path to an image, video, audio, any text
      * @param string|false $contentTarget (optional) The target of the content. For instance the URL of a landing page.
      * @throws Exception In case $contentName is empty
-     * @return string URL to piwik.php with all parameters set to track the pageview
+     * @return string URL to matomo.php with all parameters set to track the pageview
      */
     public function getUrlTrackContentImpression($contentName, $contentPiece, $contentTarget)
     {
@@ -1029,7 +1029,7 @@ class PiwikTracker
      * @param string $contentPiece The actual content. For instance the path to an image, video, audio, any text
      * @param string|false $contentTarget (optional) The target the content leading to when an interaction occurs. For instance the URL of a landing page.
      * @throws Exception In case $interaction or $contentName is empty
-     * @return string URL to piwik.php with all parameters set to track the pageview
+     * @return string URL to matomo.php with all parameters set to track the pageview
      */
     public function getUrlTrackContentInteraction($interaction, $contentName, $contentPiece, $contentTarget)
     {
@@ -1085,7 +1085,7 @@ class PiwikTracker
      * @see doTrackGoal()
      * @param int $idGoal Id Goal to record a conversion
      * @param float $revenue Revenue for this conversion
-     * @return string URL to piwik.php with all parameters set to track the goal conversion
+     * @return string URL to matomo.php with all parameters set to track the goal conversion
      */
     public function getUrlTrackGoal($idGoal, $revenue = 0.0)
     {
@@ -1105,7 +1105,7 @@ class PiwikTracker
      * @see doTrackAction()
      * @param string $actionUrl URL of the download or outlink
      * @param string $actionType Type of the action: 'download' or 'link'
-     * @return string URL to piwik.php with all parameters set to track an action
+     * @return string URL to matomo.php with all parameters set to track an action
      */
     public function getUrlTrackAction($actionUrl, $actionType)
     {
@@ -1117,7 +1117,7 @@ class PiwikTracker
 
     /**
      * Overrides server date and time for the tracking requests.
-     * By default Piwik will track requests for the "current datetime" but this function allows you
+     * By default Matomo will track requests for the "current datetime" but this function allows you
      * to track visits in the past. All times are in UTC.
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth()
@@ -1133,9 +1133,9 @@ class PiwikTracker
     }
 
     /**
-     * Forces Piwik to create a new visit for the tracking request.
+     * Forces Matomo to create a new visit for the tracking request.
      *
-     * By default, Piwik will create a new visit if the last request by this user was more than 30 minutes ago.
+     * By default, Matomo will create a new visit if the last request by this user was more than 30 minutes ago.
      * If you call setForceNewVisit() before calling doTrack*, then a new visit will be created for this request.
      * @return $this
      */
@@ -1178,7 +1178,7 @@ class PiwikTracker
     }
 
     /**
-     * Hash function used internally by Piwik to hash a User ID into the Visitor ID.
+     * Hash function used internally by Matomo to hash a User ID into the Visitor ID.
      *
      * Note: matches implementation of Tracker\Request->getUserIdHashed()
      *
@@ -1193,7 +1193,7 @@ class PiwikTracker
     /**
      * Forces the requests to be recorded for the specified Visitor ID.
      *
-     * Rather than letting Piwik attribute the user with a heuristic based on IP and other user fingeprinting attributes,
+     * Rather than letting Matomo attribute the user with a heuristic based on IP and other user fingeprinting attributes,
      * force the action to be recorded for a particular visitor.
      *
      * If not set, the visitor ID will be fetched from the 1st party cookie, or will be set to a random UUID.
@@ -1221,7 +1221,7 @@ class PiwikTracker
     }
 
     /**
-     * If the user initiating the request has the Piwik first party cookie,
+     * If the user initiating the request has the Matomo first party cookie,
      * this function will try and return the ID parsed from this first party cookie (found in $_COOKIE).
      *
      * If you call this function from a server, where the call is triggered by a cron or script
@@ -1321,7 +1321,7 @@ class PiwikTracker
      *
      * @return string JSON Encoded string containing the Referrer information for Goal conversion attribution.
      *                Will return false if the cookie could not be found
-     * @see Piwik.js getAttributionInfo()
+     * @see matomo.js getAttributionInfo()
      */
     public function getAttributionInfo()
     {
@@ -1380,7 +1380,7 @@ class PiwikTracker
 
     /**
      * Sets if the browser supports cookies
-     * This is reported in "List of plugins" report in Piwik.
+     * This is reported in "List of plugins" report in Matomo.
      *
      * @param bool $bool
      * @return $this
@@ -1442,7 +1442,7 @@ class PiwikTracker
     }
 
     /**
-     * By default, PiwikTracker will read first party cookies
+     * By default, MatomoTracker will read first party cookies
      * from the request and write updated cookies in the response (using setrawcookie).
      * This can be disabled by calling this function.
      */
@@ -1453,7 +1453,7 @@ class PiwikTracker
 
     /**
      * Returns the maximum number of seconds the tracker will spend waiting for a response
-     * from Piwik. Defaults to 600 seconds.
+     * from Matomo. Defaults to 600 seconds.
      */
     public function getRequestTimeout()
     {
@@ -1462,7 +1462,7 @@ class PiwikTracker
 
     /**
      * Sets the maximum number of seconds that the tracker will spend waiting for a response
-     * from Piwik.
+     * from Matomo.
      *
      * @param int $timeout
      * @return $this
@@ -1479,7 +1479,7 @@ class PiwikTracker
     }
 
     /**
-     * If a proxy is needed to look up the address of the Piwik site, set it with this
+     * If a proxy is needed to look up the address of the Matomo site, set it with this
      * @param string $proxy IP as string, for example "173.234.92.107"
      * @param int $proxyPort
      */
@@ -1637,22 +1637,20 @@ class PiwikTracker
     }
 
     /**
-     * Returns the base URL for the piwik server.
+     * Returns the base URL for the Matomo server.
      */
     protected function getBaseUrl()
     {
         if (empty(self::$URL)) {
             throw new Exception(
-                'You must first set the Piwik Tracker URL by calling
-                 PiwikTracker::$URL = \'http://your-website.org/piwik/\';'
+                'You must first set the Matomo Tracker URL by calling
+                 MatomoTracker::$URL = \'http://your-website.org/matomo/\';'
             );
         }
-        if (strpos(self::$URL, '/piwik.php') === false
-            && strpos(self::$URL, '/proxy-piwik.php') === false
-            && strpos(self::$URL, '/matomo.php') === false
+        if (strpos(self::$URL, '/matomo.php') === false
             && strpos(self::$URL, '/proxy-matomo.php') === false
         ) {
-            self::$URL .= '/piwik.php';
+            self::$URL .= '/matomo.php';
         }
 
         return self::$URL;
@@ -1778,7 +1776,7 @@ class PiwikTracker
         }
         $name = $this->getCookieName($name);
 
-        // Piwik cookie names use dots separators in piwik.js,
+        // Matomo cookie names use dots separators in matomo.js,
         // but PHP Replaces . with _ http://www.php.net/manual/en/language.variables.predefined.php#72571
         $name = str_replace('.', '_', $name);
         foreach ($_COOKIE as $cookieName => $cookieValue) {
@@ -1892,7 +1890,7 @@ class PiwikTracker
     }
 
     /**
-     * Sets the first party cookies as would the piwik.js
+     * Sets the first party cookies as would the matomo.js
      * All cookies are supported: 'id' and 'ses' and 'ref' and 'cvar' cookies.
      * @return $this
      */
@@ -1929,7 +1927,7 @@ class PiwikTracker
     /**
      * Sets a first party cookie to the client to improve dual JS-PHP tracking.
      *
-     * This replicates the piwik.js tracker algorithms for consistency and better accuracy.
+     * This replicates the matomo.js tracker algorithms for consistency and better accuracy.
      *
      * @param $cookieName
      * @param $cookieValue
@@ -2031,9 +2029,9 @@ class PiwikTracker
  * @param string $documentTitle
  * @return string
  */
-function Piwik_getUrlTrackPageView($idSite, $documentTitle = '')
+function Matomo_getUrlTrackPageView($idSite, $documentTitle = '')
 {
-    $tracker = new PiwikTracker($idSite);
+    $tracker = new MatomoTracker($idSite);
 
     return $tracker->getUrlTrackPageView($documentTitle);
 }
@@ -2046,9 +2044,9 @@ function Piwik_getUrlTrackPageView($idSite, $documentTitle = '')
  * @param float $revenue
  * @return string
  */
-function Piwik_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
+function Matomo_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
 {
-    $tracker = new PiwikTracker($idSite);
+    $tracker = new MatomoTracker($idSite);
 
     return $tracker->getUrlTrackGoal($idGoal, $revenue);
 }
