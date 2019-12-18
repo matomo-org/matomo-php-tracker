@@ -1811,7 +1811,7 @@ class PiwikTracker
                 }
             }
         }
-        if (empty($url)) {
+        if (empty($url) && isset($_SERVER['SCRIPT_NAME'])) {
             $url = $_SERVER['SCRIPT_NAME'];
         }
 
