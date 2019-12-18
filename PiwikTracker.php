@@ -1813,6 +1813,8 @@ class PiwikTracker
         }
         if (empty($url) && isset($_SERVER['SCRIPT_NAME'])) {
             $url = $_SERVER['SCRIPT_NAME'];
+        } elseif (empty($url)) {
+        	$url = '/';
         }
 
         if ($url[0] !== '/') {
