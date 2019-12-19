@@ -2050,3 +2050,10 @@ function Matomo_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
 
     return $tracker->getUrlTrackGoal($idGoal, $revenue);
 }
+
+/**
+ * For BC only
+ *
+ * @deprecated use MatomoTracker instead
+ */
+class PiwikTracker extends MatomoTracker {}
