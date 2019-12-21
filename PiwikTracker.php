@@ -1817,7 +1817,7 @@ class PiwikTracker
         	$url = '/';
         }
 
-        if ($url[0] !== '/') {
+        if (!empty($url) && $url[0] !== '/') {
             $url = '/' . $url;
         }
 
