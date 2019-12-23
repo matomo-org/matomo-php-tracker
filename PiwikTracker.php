@@ -1811,11 +1811,13 @@ class PiwikTracker
                 }
             }
         }
-        if (empty($url)) {
+        if (empty($url) && isset($_SERVER['SCRIPT_NAME'])) {
             $url = $_SERVER['SCRIPT_NAME'];
+        } elseif (empty($url)) {
+        	$url = '/';
         }
 
-        if ($url[0] !== '/') {
+        if (!empty($url) && $url[0] !== '/') {
             $url = '/' . $url;
         }
 
