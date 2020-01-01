@@ -1,20 +1,20 @@
 {
-    "name": "piwik/piwik-php-tracker",
-    "description": "PHP Client for Piwik Analytics Tracking API",
-    "keywords": ["piwik","tracker","analytics"],
-    "homepage": "http://piwik.org",
+    "name": "matomo/matomo-php-tracker",
+    "description": "PHP Client for Matomo Analytics Tracking API",
+    "keywords": ["matomo","piwik","tracker","analytics"],
+    "homepage": "https://matomo.org",
     "license": "BSD-2-Clause",
     "authors": [
         {
-            "name": "The Piwik Team",
-            "email": "hello@piwik.org",
-            "homepage": "http://piwik.org/the-piwik-team/"
+            "name": "The Matomo Team",
+            "email": "hello@matomo.org",
+            "homepage": "https://matomo.org/team/"
         }
     ],
     "support": {
-        "forum": "http://forum.piwik.org/",
-        "issues": "https://github.com/piwik/piwik-php-tracker/issues",
-        "source": "https://github.com/piwik/piwik-php-tracker"
+        "forum": "https://forum.matomo.org/",
+        "issues": "https://github.com/matomo-org/matomo-php-tracker/issues",
+        "source": "https://github.com/matomo-org/matomo-php-tracker"
     },
     "autoload": {
         "classmap": ["."]
