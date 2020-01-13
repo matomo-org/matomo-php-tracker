@@ -158,7 +158,7 @@ class MatomoTracker
         $this->sendImageResponse = true;
 
         $this->visitorCustomVar = $this->getCustomVariablesFromCookie();
-        
+
         $this->outgoingTrackerCookies = array();
         $this->incomingTrackerCookies = array();
     }
@@ -1122,7 +1122,7 @@ class MatomoTracker
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth()
      * @see setTokenAuth()
-     * @param string $dateTime Date with the format 'Y-m-d H:i:s', or a UNIX timestamp. 
+     * @param string $dateTime Date with the format 'Y-m-d H:i:s', or a UNIX timestamp.
      *               If the datetime is older than one day (default value for tracking_requests_require_authentication_when_custom_timestamp_newer_than), then you must call setTokenAuth() with a valid Admin/Super user token.
      * @return $this
      */
@@ -1576,7 +1576,7 @@ class MatomoTracker
                 $options[CURLOPT_COOKIE] = http_build_query($this->outgoingTrackerCookies);
                 $this->outgoingTrackerCookies = array();
             }
-            
+
             $ch = curl_init();
             curl_setopt_array($ch, $options);
             ob_start();
@@ -1587,7 +1587,7 @@ class MatomoTracker
             if (!empty($response)) {
                 list($header, $content) = explode("\r\n\r\n", $response, $limitCount = 2);
             }
-            
+
             $this->parseIncomingCookies(explode("\r\n", $header));
 
         } elseif (function_exists('stream_context_create')) {
@@ -1596,7 +1596,7 @@ class MatomoTracker
                     'method' => $method,
                     'user_agent' => $this->userAgent,
                     'header' => "Accept-Language: " . $this->acceptLanguage . "\r\n",
-                    'timeout' => $this->requestTimeout, // PHP 5.2.1
+                    'timeout' => $this->requestTimeout,
                 ),
             );
 
@@ -1614,11 +1614,11 @@ class MatomoTracker
                 $stream_options['http']['header'] .= 'Cookie: ' . http_build_query($this->outgoingTrackerCookies) . "\r\n";
                 $this->outgoingTrackerCookies = array();
             }
-            
+
             $ctx = stream_context_create($stream_options);
             $response = file_get_contents($url, 0, $ctx);
             $content = $response;
-            
+
             $this->parseIncomingCookies($http_response_header);
         }
 
@@ -1977,7 +1977,7 @@ class MatomoTracker
             $this->outgoingTrackerCookies[$name] = $value;
         }
     }
-  
+
     /**
      * Gets a cookie which was set by the tracking server.
      *
@@ -1990,7 +1990,7 @@ class MatomoTracker
         if (isset($this->incomingTrackerCookies[$name])) {
             return $this->incomingTrackerCookies[$name];
         }
-        
+
         return false;
     }
 
@@ -2002,11 +2002,11 @@ class MatomoTracker
     protected function parseIncomingCookies($headers)
     {
         $this->incomingTrackerCookies = array();
-        
+
         if (!empty($headers)) {
             $headerName = 'set-cookie:';
             $headerNameLength = strlen($headerName);
-            
+
             foreach($headers as $header) {
                 if (strpos(strtolower($header), $headerName) !== 0) {
                     continue;
@@ -2018,7 +2018,7 @@ class MatomoTracker
                 }
                 parse_str($cookies, $this->incomingTrackerCookies);
             }
-        }   
+        }
     }
 }
 

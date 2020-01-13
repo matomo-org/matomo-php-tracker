@@ -16,6 +16,13 @@
         "issues": "https://github.com/matomo-org/matomo-php-tracker/issues",
         "source": "https://github.com/matomo-org/matomo-php-tracker"
     },
+    "require": {
+        "php": "^5.3",
+        "ext-json": "*"
+    },
+    "suggest": {
+        "ext-curl": "Using this extension to issue the HTTPS request to Matomo"
+    },
     "autoload": {
         "classmap": ["."]
     }
