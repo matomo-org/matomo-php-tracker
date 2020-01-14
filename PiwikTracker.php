@@ -11,7 +11,9 @@
  * @package MatomoTracker
  */
 
-include_once('./MatomoTracker.php');
+if (!class_exists('\MatomoTracker')) {
+    include_once('./MatomoTracker.php');
+}
 
 /**
  * Helper function to quickly generate the URL to track a page view.
