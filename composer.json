@@ -17,7 +17,7 @@
         "source": "https://github.com/matomo-org/matomo-php-tracker"
     },
     "require": {
-        "php": "^5.3",
+        "php": ">=5.3",
         "ext-json": "*"
     },
     "suggest": {
