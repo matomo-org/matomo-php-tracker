@@ -1650,6 +1650,7 @@ class MatomoTracker
         if (strpos(self::$URL, '/matomo.php') === false
             && strpos(self::$URL, '/proxy-matomo.php') === false
         ) {
+            self::$URL = rtrim(self::$URL, '/');
             self::$URL .= '/matomo.php';
         }
 
