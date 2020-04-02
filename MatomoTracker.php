@@ -220,13 +220,14 @@ class MatomoTracker
     }
 
     /**
-     * Sets timings for various performance metrics.
+     * Sets timings for various browser performance metrics.
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceTiming
      *
-     * @param null|int $latency
-     * @param null|int $transfer
-     * @param null|int $domProcessing
-     * @param null|int $domCompletion
-     * @param null|int $onload
+     * @param null|int $latency Latency time in ms (responseStart – fetchStart)
+     * @param null|int $transfer Transfer time in ms (responseEnd – responseStart)
+     * @param null|int $domProcessing DOM Processing to Interactive time in ms (domInteractive – domLoading)
+     * @param null|int $domCompletion DOM Interactive to Complete time in ms (domComplete – domInteractive)
+     * @param null|int $onload Onload time in ms (loadEventEnd – loadEventStart)
      * @return $this
      */
     public function setPerformanceTimings($latency = null, $transfer = null, $domProcessing = null, $domCompletion = null, $onload = null)
