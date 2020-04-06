@@ -212,6 +212,9 @@ class MatomoTracker
      *
      * @param int $timeMs Generation time in ms
      * @return $this
+     *
+     * @deprecated this metric is deprecated please use performance timings instead
+     * @see setPerformanceTimings
      */
     public function setGenerationTime($timeMs)
     {
@@ -1563,7 +1566,6 @@ class MatomoTracker
             // Clear custom variables so they don't get copied over to other users in the bulk request
             $this->clearCustomVariables();
             $this->clearCustomTrackingParameters();
-            $this->clearPerformanceTimings();
             $this->userAgent = false;
             $this->acceptLanguage = false;
 
@@ -1753,11 +1755,6 @@ class MatomoTracker
             (!empty($this->pageCustomVar) ? '&cvar=' . urlencode(json_encode($this->pageCustomVar)) : '') .
             (!empty($this->eventCustomVar) ? '&e_cvar=' . urlencode(json_encode($this->eventCustomVar)) : '') .
             (!empty($this->generationTime) ? '&gt_ms=' . ((int)$this->generationTime) : '') .
-            (!empty($this->latencyTime) ? '&pf_lat=' . ((int)$this->latencyTime) : '') .
-            (!empty($this->transferTime) ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
-            (!empty($this->domProcessingTime) ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
-            (!empty($this->domCompletionTime) ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
-            (!empty($this->onLoadTime) ? '&pf_onl=' . ((int)$this->onLoadTime) : '') .
             (!empty($this->forcedVisitorId) ? '&cid=' . $this->forcedVisitorId : '&_id=' . $this->getVisitorId()) .
 
             // URL parameters
@@ -1791,6 +1788,15 @@ class MatomoTracker
             // DEBUG
             $this->DEBUG_APPEND_URL;
 
+        if (!empty($this->idPageview)) {
+            $url .=
+                (!empty($this->latencyTime) ? '&pf_lat=' . ((int)$this->latencyTime) : '') .
+                (!empty($this->transferTime) ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
+                (!empty($this->domProcessingTime) ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
+                (!empty($this->domCompletionTime) ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
+                (!empty($this->onLoadTime) ? '&pf_onl=' . ((int)$this->onLoadTime) : '');
+            $this->clearPerformanceTimings();
+        }
 
         // Reset page level custom variables after this page view
         $this->pageCustomVar = array();
