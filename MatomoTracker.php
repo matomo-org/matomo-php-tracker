@@ -1794,12 +1794,12 @@ class MatomoTracker
 
         if (!empty($this->idPageview)) {
             $url .=
-                (!empty($this->networkTime) ? '&pf_net=' . ((int)$this->networkTime) : '') .
-                (!empty($this->serverTime) ? '&pf_srv=' . ((int)$this->serverTime) : '') .
-                (!empty($this->transferTime) ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
-                (!empty($this->domProcessingTime) ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
-                (!empty($this->domCompletionTime) ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
-                (!empty($this->onLoadTime) ? '&pf_onl=' . ((int)$this->onLoadTime) : '');
+                ($this->networkTime !== false ? '&pf_net=' . ((int)$this->networkTime) : '') .
+                ($this->serverTime !== false ? '&pf_srv=' . ((int)$this->serverTime) : '') .
+                ($this->transferTime !== false ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
+                ($this->domProcessingTime !== false ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
+                ($this->domCompletionTime !== false ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
+                ($this->onLoadTime !== false ? '&pf_onl=' . ((int)$this->onLoadTime) : '');
             $this->clearPerformanceTimings();
         }
 
