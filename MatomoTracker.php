@@ -94,11 +94,12 @@ class MatomoTracker
         $this->forcedDatetime = false;
         $this->forcedNewVisit = false;
         $this->generationTime = false;
+        $this->networkTime = false;
+        $this->serverTime = false;
         $this->transferTime = false;
-        $this->onLoadTime = false;
-        $this->latencyTime = false;
         $this->domProcessingTime = false;
         $this->domCompletionTime = false;
+        $this->onLoadTime = false;
         $this->pageCustomVar = false;
         $this->customParameters = array();
         $this->customData = false;
@@ -226,16 +227,18 @@ class MatomoTracker
      * Sets timings for various browser performance metrics.
      * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceTiming
      *
-     * @param null|int $latency Latency time in ms (responseStart – fetchStart)
+     * @param null|int $network Network time in ms (connectEnd – fetchStart)
+     * @param null|int $server Server time in ms (responseStart – requestStart)
      * @param null|int $transfer Transfer time in ms (responseEnd – responseStart)
      * @param null|int $domProcessing DOM Processing to Interactive time in ms (domInteractive – domLoading)
      * @param null|int $domCompletion DOM Interactive to Complete time in ms (domComplete – domInteractive)
      * @param null|int $onload Onload time in ms (loadEventEnd – loadEventStart)
      * @return $this
      */
-    public function setPerformanceTimings($latency = null, $transfer = null, $domProcessing = null, $domCompletion = null, $onload = null)
+    public function setPerformanceTimings($network = null, $server = null, $transfer = null, $domProcessing = null, $domCompletion = null, $onload = null)
     {
-        $this->latencyTime = $latency;
+        $this->networkTime = $network;
+        $this->serverTime = $server;
         $this->transferTime = $transfer;
         $this->domProcessingTime = $domProcessing;
         $this->domCompletionTime = $domCompletion;
@@ -248,7 +251,8 @@ class MatomoTracker
      */
     public function clearPerformanceTimings()
     {
-        $this->latencyTime = false;
+        $this->networkTime = false;
+        $this->serverTime = false;
         $this->transferTime = false;
         $this->domProcessingTime = false;
         $this->domCompletionTime = false;
@@ -1790,7 +1794,8 @@ class MatomoTracker
 
         if (!empty($this->idPageview)) {
             $url .=
-                (!empty($this->latencyTime) ? '&pf_lat=' . ((int)$this->latencyTime) : '') .
+                (!empty($this->networkTime) ? '&pf_net=' . ((int)$this->networkTime) : '') .
+                (!empty($this->serverTime) ? '&pf_srv=' . ((int)$this->serverTime) : '') .
                 (!empty($this->transferTime) ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
                 (!empty($this->domProcessingTime) ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
                 (!empty($this->domCompletionTime) ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
