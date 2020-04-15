@@ -93,7 +93,6 @@ class MatomoTracker
         $this->eventCustomVar = false;
         $this->forcedDatetime = false;
         $this->forcedNewVisit = false;
-        $this->generationTime = false;
         $this->networkTime = false;
         $this->serverTime = false;
         $this->transferTime = false;
@@ -219,7 +218,6 @@ class MatomoTracker
      */
     public function setGenerationTime($timeMs)
     {
-        $this->generationTime = $timeMs;
         return $this;
     }
 
@@ -1758,7 +1756,6 @@ class MatomoTracker
             (!empty($this->visitorCustomVar) ? '&_cvar=' . urlencode(json_encode($this->visitorCustomVar)) : '') .
             (!empty($this->pageCustomVar) ? '&cvar=' . urlencode(json_encode($this->pageCustomVar)) : '') .
             (!empty($this->eventCustomVar) ? '&e_cvar=' . urlencode(json_encode($this->eventCustomVar)) : '') .
-            (!empty($this->generationTime) ? '&gt_ms=' . ((int)$this->generationTime) : '') .
             (!empty($this->forcedVisitorId) ? '&cid=' . $this->forcedVisitorId : '&_id=' . $this->getVisitorId()) .
 
             // URL parameters
