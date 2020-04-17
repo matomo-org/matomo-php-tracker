@@ -93,7 +93,12 @@ class MatomoTracker
         $this->eventCustomVar = false;
         $this->forcedDatetime = false;
         $this->forcedNewVisit = false;
-        $this->generationTime = false;
+        $this->networkTime = false;
+        $this->serverTime = false;
+        $this->transferTime = false;
+        $this->domProcessingTime = false;
+        $this->domCompletionTime = false;
+        $this->onLoadTime = false;
         $this->pageCustomVar = false;
         $this->customParameters = array();
         $this->customData = false;
@@ -207,11 +212,49 @@ class MatomoTracker
      *
      * @param int $timeMs Generation time in ms
      * @return $this
+     *
+     * @deprecated this metric is deprecated please use performance timings instead
+     * @see setPerformanceTimings
      */
     public function setGenerationTime($timeMs)
     {
-        $this->generationTime = $timeMs;
         return $this;
+    }
+
+    /**
+     * Sets timings for various browser performance metrics.
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceTiming
+     *
+     * @param null|int $network Network time in ms (connectEnd – fetchStart)
+     * @param null|int $server Server time in ms (responseStart – requestStart)
+     * @param null|int $transfer Transfer time in ms (responseEnd – responseStart)
+     * @param null|int $domProcessing DOM Processing to Interactive time in ms (domInteractive – domLoading)
+     * @param null|int $domCompletion DOM Interactive to Complete time in ms (domComplete – domInteractive)
+     * @param null|int $onload Onload time in ms (loadEventEnd – loadEventStart)
+     * @return $this
+     */
+    public function setPerformanceTimings($network = null, $server = null, $transfer = null, $domProcessing = null, $domCompletion = null, $onload = null)
+    {
+        $this->networkTime = $network;
+        $this->serverTime = $server;
+        $this->transferTime = $transfer;
+        $this->domProcessingTime = $domProcessing;
+        $this->domCompletionTime = $domCompletion;
+        $this->onLoadTime = $onload;
+        return $this;
+    }
+
+    /**
+     * Clear / reset all previously set performance metrics.
+     */
+    public function clearPerformanceTimings()
+    {
+        $this->networkTime = false;
+        $this->serverTime = false;
+        $this->transferTime = false;
+        $this->domProcessingTime = false;
+        $this->domCompletionTime = false;
+        $this->onLoadTime = false;
     }
 
     /**
@@ -1713,7 +1756,6 @@ class MatomoTracker
             (!empty($this->visitorCustomVar) ? '&_cvar=' . urlencode(json_encode($this->visitorCustomVar)) : '') .
             (!empty($this->pageCustomVar) ? '&cvar=' . urlencode(json_encode($this->pageCustomVar)) : '') .
             (!empty($this->eventCustomVar) ? '&e_cvar=' . urlencode(json_encode($this->eventCustomVar)) : '') .
-            (!empty($this->generationTime) ? '&gt_ms=' . ((int)$this->generationTime) : '') .
             (!empty($this->forcedVisitorId) ? '&cid=' . $this->forcedVisitorId : '&_id=' . $this->getVisitorId()) .
 
             // URL parameters
@@ -1747,6 +1789,16 @@ class MatomoTracker
             // DEBUG
             $this->DEBUG_APPEND_URL;
 
+        if (!empty($this->idPageview)) {
+            $url .=
+                ($this->networkTime !== false ? '&pf_net=' . ((int)$this->networkTime) : '') .
+                ($this->serverTime !== false ? '&pf_srv=' . ((int)$this->serverTime) : '') .
+                ($this->transferTime !== false ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
+                ($this->domProcessingTime !== false ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
+                ($this->domCompletionTime !== false ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
+                ($this->onLoadTime !== false ? '&pf_onl=' . ((int)$this->onLoadTime) : '');
+            $this->clearPerformanceTimings();
+        }
 
         // Reset page level custom variables after this page view
         $this->pageCustomVar = array();
