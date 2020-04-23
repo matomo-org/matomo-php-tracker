@@ -1627,6 +1627,11 @@ class MatomoTracker
             ob_end_clean();
             $header = '';
             $content = '';
+            
+            if ($response === false) {
+                throw new \RuntimeException(curl_error($ch));
+            }
+            
             if (!empty($response)) {
                 list($header, $content) = explode("\r\n\r\n", $response, $limitCount = 2);
             }
