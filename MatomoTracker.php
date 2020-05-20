@@ -1455,7 +1455,6 @@ class MatomoTracker
      * @param bool $realPlayer
      * @param bool $pdf
      * @param bool $windowsMedia
-     * @param bool $gears
      * @param bool $silverlight
      * @return $this
      */
@@ -1467,7 +1466,6 @@ class MatomoTracker
         $realPlayer = false,
         $pdf = false,
         $windowsMedia = false,
-        $gears = false,
         $silverlight = false
     )
     {
@@ -1479,7 +1477,6 @@ class MatomoTracker
             '&realp=' . (int)$realPlayer .
             '&pdf=' . (int)$pdf .
             '&wma=' . (int)$windowsMedia .
-            '&gears=' . (int)$gears .
             '&ag=' . (int)$silverlight;
         return $this;
     }
