@@ -1450,7 +1450,6 @@ class MatomoTracker
      *
      * @param bool $flash
      * @param bool $java
-     * @param bool $director
      * @param bool $quickTime
      * @param bool $realPlayer
      * @param bool $pdf
@@ -1461,7 +1460,6 @@ class MatomoTracker
     public function setPlugins(
         $flash = false,
         $java = false,
-        $director = false,
         $quickTime = false,
         $realPlayer = false,
         $pdf = false,
@@ -1472,7 +1470,6 @@ class MatomoTracker
         $this->plugins =
             '&fla=' . (int)$flash .
             '&java=' . (int)$java .
-            '&dir=' . (int)$director .
             '&qt=' . (int)$quickTime .
             '&realp=' . (int)$realPlayer .
             '&pdf=' . (int)$pdf .
