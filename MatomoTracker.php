@@ -63,14 +63,6 @@ class MatomoTracker
     const FIRST_PARTY_COOKIES_PREFIX = '_pk_';
 
     /**
-     * Ecommerce item page view tracking stores item's metadata in these Custom Variables slots.
-     */
-    const CVAR_INDEX_ECOMMERCE_ITEM_PRICE = 2;
-    const CVAR_INDEX_ECOMMERCE_ITEM_SKU = 3;
-    const CVAR_INDEX_ECOMMERCE_ITEM_NAME = 4;
-    const CVAR_INDEX_ECOMMERCE_ITEM_CATEGORY = 5;
-
-    /**
      * Defines how many categories can be used max when calling addEcommerceItem().
      * @var int
      */
@@ -100,6 +92,7 @@ class MatomoTracker
         $this->domCompletionTime = false;
         $this->onLoadTime = false;
         $this->pageCustomVar = false;
+        $this->ecommerceView = array();
         $this->customParameters = array();
         $this->customData = false;
         $this->hasCookies = false;
@@ -837,8 +830,6 @@ class MatomoTracker
      * Sets the current page view as an item (product) page view, or an Ecommerce Category page view.
      *
      * This must be called before doTrackPageView() on this product/category page.
-     * It will set 3 custom variables of scope "page" with the SKU, Name and Category for this page view.
-     * Note: Custom Variables of scope "page" slots 3, 4 and 5 will be used.
      *
      * On a category page, you may set the parameter $category only and set the other parameters to false.
      *
@@ -854,6 +845,8 @@ class MatomoTracker
      */
     public function setEcommerceView($sku = '', $name = '', $category = '', $price = 0.0)
     {
+        $this->ecommerceView = [];
+
         if (!empty($category)) {
             if (is_array($category)) {
                 $category = json_encode($category);
@@ -861,12 +854,12 @@ class MatomoTracker
         } else {
             $category = "";
         }
-        $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_CATEGORY] = array('_pkc', $category);
+        $this->ecommerceView['_pkc'] = $category;
 
         if (!empty($price)) {
             $price = (float)$price;
             $price = $this->forceDotAsSeparatorForDecimalPoint($price);
-            $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_PRICE] = array('_pkp', $price);
+            $this->ecommerceView['_pkp'] = $price;
         }
 
         // On a category page, do not record "Product name not defined"
@@ -874,12 +867,12 @@ class MatomoTracker
             return $this;
         }
         if (!empty($sku)) {
-            $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_SKU] = array('_pks', $sku);
+            $this->ecommerceView['_pks'] = $sku;
         }
         if (empty($name)) {
             $name = "";
         }
-        $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_NAME] = array('_pkn', $name);
+        $this->ecommerceView['_pkn'] = $name;
         return $this;
     }
 
@@ -1799,7 +1792,12 @@ class MatomoTracker
             $this->clearPerformanceTimings();
         }
 
+        foreach ($this->ecommerceView as $param => $value) {
+            $url .= '&' . $param . '=' . urlencode($value);
+        }
+
         // Reset page level custom variables after this page view
+        $this->ecommerceView = array();
         $this->pageCustomVar = array();
         $this->eventCustomVar = array();
         $this->clearCustomTrackingParameters();
