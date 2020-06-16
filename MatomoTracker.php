@@ -2058,5 +2058,5 @@ function Matomo_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
  * @deprecated
  */
 if (!class_exists('\PiwikTracker')) {
-    include_once('./PiwikTracker.php');
+    include_once('PiwikTracker.php');
 }
