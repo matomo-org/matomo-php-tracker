@@ -12,7 +12,7 @@
  */
 
 if (!class_exists('\MatomoTracker')) {
-    include_once('./MatomoTracker.php');
+    include_once('MatomoTracker.php');
 }
 
 /**
