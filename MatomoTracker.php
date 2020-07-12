@@ -1477,6 +1477,19 @@ class MatomoTracker
         $this->requestTimeout = $timeout;
         return $this;
     }
+	
+	/**
+     * Sets the request method (either GET or POST). POST is recommended when using
+     * setTokenAuth() to prevent the token from being recorded in server logs.
+	 *
+     * @param string $method
+     * @return $this
+     */
+    public function setRequestMethod($method)
+    {
+        $this->requestMethod = strtoupper($method) === 'POST' ? 'POST' : 'GET';
+        return $this;
+    }
 
     /**
      * If a proxy is needed to look up the address of the Matomo site, set it with this
@@ -1532,6 +1545,8 @@ class MatomoTracker
         }
 
         $proxy = $this->getProxy();
+		
+		$method = isset($this->requestMethod) ? $this->requestMethod : $method;
 
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
