@@ -1481,7 +1481,8 @@ class MatomoTracker
 	/**
      * Sets the request method (either GET or POST). POST is recommended when using
      * setTokenAuth() to prevent the token from being recorded in server logs.
-	 *
+     * When using POST, to prevent loss of the POST values, avoid using redirects.
+     *
      * @param string $method
      * @return $this
      */
@@ -1546,7 +1547,7 @@ class MatomoTracker
 
         $proxy = $this->getProxy();
 		
-		$method = isset($this->requestMethod) ? $this->requestMethod : $method;
+	$method = isset($this->requestMethod) ? $this->requestMethod : $method;
 
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
