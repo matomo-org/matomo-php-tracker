@@ -1546,8 +1546,8 @@ class MatomoTracker
         }
 
         $proxy = $this->getProxy();
-		
-	$method = isset($this->requestMethod) ? $this->requestMethod : $method;
+
+        $method = isset($this->requestMethod) ? $this->requestMethod : $method;
 
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
