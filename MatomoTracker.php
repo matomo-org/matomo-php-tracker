@@ -161,8 +161,6 @@ class MatomoTracker
 
         $this->outgoingTrackerCookies = array();
         $this->incomingTrackerCookies = array();
-		
-        $this->requestMethodPost = false;
     }
 
     /**
@@ -1483,13 +1481,15 @@ class MatomoTracker
 	/**
      * Sets the request method to POST, which is recommended when using setTokenAuth()
      * to prevent the token from being recorded in server logs. Avoid using redirects
-     * when using POST to prevent the loss of POST values.
+     * when using POST to prevent the loss of POST values. When using Log Analytics,
+     * be aware that POST requests are not parseable/replayable.
      *
+     * @param string $method
      * @return $this
      */
-    public function setRequestMethodPost()
+    public function setRequestMethod($method)
     {
-        $this->requestMethodPost = true;
+        $this->requestMethod = strtoupper($method) === 'POST' ? 'POST' : 'GET';
         return $this;
     }
 
@@ -1548,11 +1548,14 @@ class MatomoTracker
 
         $proxy = $this->getProxy();
 
-        if ($this->requestMethodPost && !$this->doBulkRequests) {
-            $url_parts = explode('?', $url);
+        if (isset($this->requestMethod)
+            && $this->requestMethod === 'POST'
+            && !$this->doBulkRequests
+        ) {
+            $urlParts = explode('?', $url);
 			
-            $url = $url_parts[0];
-            $post_data = $url_parts[1];
+            $url = $urlParts[0];
+            $postData = $urlParts[1];
 			
             $method = 'POST';
         }
@@ -1589,9 +1592,9 @@ class MatomoTracker
                     break;
             }
 			
-            if (isset($post_data)) {
+            if (isset($postData)) {
                 $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
-                $options[CURLOPT_POSTFIELDS] = $post_data;
+                $options[CURLOPT_POSTFIELDS] = $postData;
             }
 
             // only supports JSON data
@@ -1633,9 +1636,9 @@ class MatomoTracker
                 $stream_options['http']['proxy'] = $proxy;
             }
 			
-            if (isset($post_data)) {
+            if (isset($postData)) {
                 $stream_options['http']['header'] .= 'Content-Type: application/x-www-form-urlencoded';
-                $stream_options['http']['content'] = $post_data;
+                $stream_options['http']['content'] = $postData;
             }
 
             // only supports JSON data
