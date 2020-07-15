@@ -1487,7 +1487,7 @@ class MatomoTracker
      * @param string $method
      * @return $this
      */
-    public function setRequestMethod($method)
+    public function setRequestMethodNonBulk($method)
     {
         $this->requestMethod = strtoupper($method) === 'POST' ? 'POST' : 'GET';
         return $this;
