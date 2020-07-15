@@ -1504,10 +1504,18 @@ class MatomoTracker
     }
 
     /**
-     * Sets the request method to POST, which is recommended when using setTokenAuth()
-     * to prevent the token from being recorded in server logs. Avoid using redirects
-     * when using POST to prevent the loss of POST values. When using Log Analytics,
-     * be aware that POST requests are not parseable/replayable.
+     *
+     * Customise the request method behaviour.
+     * This does not impact bulk requests which always POST data.
+     * All other requests should behave like this:
+     * 1. You can now force `POST` of all requests by setting `POST` as request method. When set, all parameters will
+     *    be posted. This can be useful if there's a problem on the webserver re URL length or the requests are very long.
+     * 2. By default regular requests use HTTP "GET" unless a token auth is specified.
+     *    When a token auth is specified, we use HTTP "POST" but we only POST the token, nothing else. This way log
+     *    replay will still be possible.
+     * 3. If you are having for example redirect issues then you can set requestMethod to `GET` to force using HTTP "GET"
+     *    requests. The token auth will then be sent also using a GET url parameter and the token will be visible in your
+     *    server logs.
      *
      * @param string $method
      * @return $this
