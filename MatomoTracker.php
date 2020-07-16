@@ -1477,6 +1477,21 @@ class MatomoTracker
         $this->requestTimeout = $timeout;
         return $this;
     }
+	
+	/**
+     * Sets the request method to POST, which is recommended when using setTokenAuth()
+     * to prevent the token from being recorded in server logs. Avoid using redirects
+     * when using POST to prevent the loss of POST values. When using Log Analytics,
+     * be aware that POST requests are not parseable/replayable.
+     *
+     * @param string $method Either 'POST' or 'GET'
+     * @return $this
+     */
+    public function setRequestMethodNonBulk($method)
+    {
+        $this->requestMethod = strtoupper($method) === 'POST' ? 'POST' : 'GET';
+        return $this;
+    }
 
     /**
      * If a proxy is needed to look up the address of the Matomo site, set it with this
@@ -1533,6 +1548,18 @@ class MatomoTracker
 
         $proxy = $this->getProxy();
 
+        if (isset($this->requestMethod)
+            && $this->requestMethod === 'POST'
+            && !$this->doBulkRequests
+        ) {
+            $urlParts = explode('?', $url);
+			
+            $url = $urlParts[0];
+            $postData = $urlParts[1];
+			
+            $method = 'POST';
+        }
+
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
                 CURLOPT_URL => $url,
@@ -1563,6 +1590,11 @@ class MatomoTracker
                     break;
                 default:
                     break;
+            }
+			
+            if (isset($postData)) {
+                $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
+                $options[CURLOPT_POSTFIELDS] = $postData;
             }
 
             // only supports JSON data
@@ -1602,6 +1634,11 @@ class MatomoTracker
 
             if (isset($proxy)) {
                 $stream_options['http']['proxy'] = $proxy;
+            }
+			
+            if (isset($postData)) {
+                $stream_options['http']['header'] .= 'Content-Type: application/x-www-form-urlencoded';
+                $stream_options['http']['content'] = $postData;
             }
 
             // only supports JSON data
