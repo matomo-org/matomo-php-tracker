@@ -1519,29 +1519,6 @@ class MatomoTracker
     }
 
     /**
-     *
-     * Customise the request method behaviour.
-     * This does not impact bulk requests which always POST data.
-     * All other requests should behave like this:
-     * 1. You can now force `POST` of all requests by setting `POST` as request method. When set, all parameters will
-     *    be posted. This can be useful if there's a problem on the webserver re URL length or the requests are very long.
-     * 2. By default regular requests use HTTP "GET" unless a token auth is specified.
-     *    When a token auth is specified, we use HTTP "POST" but we only POST the token, nothing else. This way log
-     *    replay will still be possible.
-     * 3. If you are having for example redirect issues then you can set requestMethod to `GET` to force using HTTP "GET"
-     *    requests. The token auth will then be sent also using a GET url parameter and the token will be visible in your
-     *    server logs.
-     *
-     * @param string $method
-     * @return $this
-     */
-    public function setRequestMethodForNonBulkRequests($requestMethod)
-    {
-        $this->requestMethod = $requestMethod;
-        return $this;
-    }
-
-    /**
      * Used in tests to output useful error messages.
      *
      * @ignore
@@ -1574,6 +1551,7 @@ class MatomoTracker
         $forcePostUrlEncoded = false;
         if (!$this->doBulkRequests) {
             if (strtoupper($this->requestMethod) === 'POST') {
+                // POST ALL parameters and have no GET parameters
                 $urlParts = explode('?', $url);
 
                 $url = $urlParts[0];
@@ -1585,30 +1563,20 @@ class MatomoTracker
 
             if (!empty($this->token_auth)) {
                 if (empty($this->requestMethod) || $method === 'POST') {
+                    // Only post token_auth but use GET URL parameters for everything else
                     $forcePostUrlEncoded = true;
                     if (empty($data)) {
                         $data = array();
                     }
                     $data['token_auth'] = urlencode($this->token_auth);
                 } elseif (!empty($this->token_auth)) {
+                    // Use GET for all URL parameters
                     $url .= '&token_auth=' . urlencode($this->token_auth);
                 }
             }
         }
 
         $proxy = $this->getProxy();
-
-        if (isset($this->requestMethod)
-            && $this->requestMethod === 'POST'
-            && !$this->doBulkRequests
-        ) {
-            $urlParts = explode('?', $url);
-			
-            $url = $urlParts[0];
-            $postData = $urlParts[1];
-			
-            $method = 'POST';
-        }
 
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
@@ -1640,11 +1608,6 @@ class MatomoTracker
                     break;
                 default:
                     break;
-            }
-			
-            if (isset($postData)) {
-                $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
-                $options[CURLOPT_POSTFIELDS] = $postData;
             }
 
             // only supports JSON data
@@ -1692,11 +1655,6 @@ class MatomoTracker
 
             if (isset($proxy)) {
                 $stream_options['http']['proxy'] = $proxy;
-            }
-			
-            if (isset($postData)) {
-                $stream_options['http']['header'] .= 'Content-Type: application/x-www-form-urlencoded';
-                $stream_options['http']['content'] = $postData;
             }
 
             // only supports JSON data
