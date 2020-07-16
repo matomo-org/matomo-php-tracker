@@ -1484,7 +1484,7 @@ class MatomoTracker
      * when using POST to prevent the loss of POST values. When using Log Analytics,
      * be aware that POST requests are not parseable/replayable.
      *
-     * @param string $method
+     * @param string $method Either 'POST' or 'GET'
      * @return $this
      */
     public function setRequestMethodNonBulk($method)
