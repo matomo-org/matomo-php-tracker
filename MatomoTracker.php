@@ -1562,16 +1562,19 @@ class MatomoTracker
             }
 
             if (!empty($this->token_auth)) {
+                $appendTokenString = '&token_auth=' . urlencode($this->token_auth);
+
                 if (empty($this->requestMethod) || $method === 'POST') {
                     // Only post token_auth but use GET URL parameters for everything else
                     $forcePostUrlEncoded = true;
                     if (empty($data)) {
-                        $data = array();
+                        $data = '';
                     }
-                    $data['token_auth'] = urlencode($this->token_auth);
+                    $data .= $appendTokenString;
+                    $data = ltrim($data, '&'); // when no request method set we don't want it to start with '&'
                 } elseif (!empty($this->token_auth)) {
                     // Use GET for all URL parameters
-                    $url .= '&token_auth=' . urlencode($this->token_auth);
+                    $url .= $appendTokenString;
                 }
             }
         }
