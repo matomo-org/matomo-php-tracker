@@ -142,6 +142,9 @@ class MatomoTracker
         $this->configCookiesDisabled = false;
         $this->configCookiePath = self::DEFAULT_COOKIE_PATH;
         $this->configCookieDomain = '';
+        $this->configCookieSameSite = '';
+        $this->configCookieSecure = false;
+        $this->configCookieHTTPOnly = false;
 
         $this->currentTs = time();
         $this->createTs = $this->currentTs;
@@ -491,12 +494,18 @@ class MatomoTracker
      * @param string $domain (optional) Set first-party cookie domain.
      *  Accepted values: example.com, *.example.com (same as .example.com) or subdomain.example.com
      * @param string $path (optional) Set first-party cookie path
+     * @param bool $secure (optional) Set secure flag for cookies
+     * @param bool $httpOnly (optional) Set HTTPOnly flag for cookies
+     * @param string $sameSite (optional) Set SameSite flag for cookies
      */
-    public function enableCookies($domain = '', $path = '/')
+    public function enableCookies($domain = '', $path = '/', $secure = false, $httpOnly = false, $sameSite = '')
     {
         $this->configCookiesDisabled = false;
         $this->configCookieDomain = self::domainFixup($domain);
         $this->configCookiePath = $path;
+        $this->configCookieSecure = $secure;
+        $this->configCookieHTTPOnly = $httpOnly;
+        $this->configCookieSameSite = $sameSite;
     }
 
     /**
@@ -1976,13 +1985,15 @@ class MatomoTracker
     {
         $cookieExpire = $this->currentTs + $cookieTTL;
         if (!headers_sent()) {
-            setcookie(
-                $this->getCookieName($cookieName),
-                $cookieValue,
-                $cookieExpire,
-                $this->configCookiePath,
-                $this->configCookieDomain
-            );
+            $header = 'Set-Cookie: ' . rawurlencode($this->getCookieName($cookieName)) . '=' . rawurlencode($cookieValue)
+                . (empty($cookieExpire) ? '' : '; expires=' . gmdate('D, d-M-Y H:i:s', $cookieExpire) . ' GMT')
+                . (empty($this->configCookiePath) ? '' : '; path=' . $this->configCookiePath)
+                . (empty($this->configCookieDomain) ? '' : '; domain=' . rawurlencode($this->configCookieDomain))
+                . (!$this->configCookieSecure ? '' : '; secure')
+                . (!$this->configCookieHTTPOnly ? '' : '; HttpOnly')
+                . (!$this->configCookieSameSite ? '' : '; SameSite=' . rawurlencode($this->configCookieSameSite));
+
+            header($header, false);
         }
         return $this;
     }
@@ -2035,7 +2046,7 @@ class MatomoTracker
     /**
      * Reads incoming tracking server cookies.
      *
-     * @param $headers Array with HTTP response headers as values
+     * @param array $headers Array with HTTP response headers as values
      */
     protected function parseIncomingCookies($headers)
     {
