@@ -1,6 +1,6 @@
 # PHP Client for Matomo Analytics Tracking API
 
-The PHP Tracker Client provides all features of the [Matomo Javascript Tracker](https://developer.matomo.org/api-reference/tracking-javascript), such as Ecommerce Tracking, Custom Variable, Event tracking and more. 
+The PHP Tracker Client provides all features of the [Matomo Javascript Tracker](https://developer.matomo.org/api-reference/tracking-javascript), such as Ecommerce Tracking, Custom Variables, Event Tracking and more. 
 
 ## Documentation and examples 
 Check out our [Matomo-PHP-Tracker developer documentation](https://developer.matomo.org/api-reference/PHP-Piwik-Tracker) and [Matomo Tracking API guide](https://matomo.org/docs/tracking-api/).
@@ -29,8 +29,8 @@ $matomoTracker->doTrackPageView($matomoPageTitle);
 ```
 
 ## Requirements:
-* json extension (json_decode, json_encode)
-* CURL or STREAM extensions (to issue the HTTPS request to Matomo)
+* JSON extension (json_decode, json_encode)
+* cURL or stream extension (to issue the HTTPS request to Matomo)
 
 ## Installation
 
