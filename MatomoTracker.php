@@ -1619,7 +1619,7 @@ class MatomoTracker
                 $options[CURLOPT_POSTFIELDS] = $data;
                 $options[CURLOPT_POST] = true;
                 if (defined('CURL_REDIR_POST_ALL')) {
-                    $curl_op[CURLOPT_POSTREDIR] = CURL_REDIR_POST_ALL;
+                    $options[CURLOPT_POSTREDIR] = CURL_REDIR_POST_ALL;
                     $options[CURLOPT_FOLLOWLOCATION] = true;
                 }
             } elseif (!empty($data)) {
