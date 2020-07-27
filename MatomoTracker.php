@@ -94,6 +94,7 @@ class MatomoTracker
         $this->pageCustomVar = false;
         $this->ecommerceView = array();
         $this->customParameters = array();
+        $this->customDimensions = array();
         $this->customData = false;
         $this->hasCookies = false;
         $this->token_auth = false;
@@ -369,17 +370,56 @@ class MatomoTracker
     }
 
     /**
+     * Sets a specific custom dimension
+     *
+     * @param int $id id of custom dimension
+     * @param string $value value for custom dimension
+     * @return $this
+     */
+    public function setCustomDimension($id, $value)
+    {
+        $this->customDimensions['dimension'.(int)$id] = $value;
+        return $this;
+    }
+
+    /**
+     * Clears all previously set custom dimensions
+     */
+    public function clearCustomDimensions()
+    {
+        $this->customDimensions = [];
+    }
+
+    /**
+     * Returns the value of the custom dimension with the given id
+     *
+     * @param int $id id of custom dimension
+     * @return string|null
+     */
+    public function getCustomDimension($id)
+    {
+        return $this->customDimensions['dimension'.(int)$id] ?? null;
+    }
+
+    /**
      * Sets a custom tracking parameter. This is useful if you need to send any tracking parameters for a 3rd party
      * plugin that is not shipped with Matomo itself. Please note that custom parameters are cleared after each
      * tracking request.
      *
-     * @param string $trackingApiParameter The name of the tracking API parameter, eg 'dimension1'
+     * @param string $trackingApiParameter The name of the tracking API parameter, eg 'bw_bytes'
      * @param string $value Tracking parameter value that shall be sent for this tracking parameter.
      * @return $this
      * @throws Exception
      */
     public function setCustomTrackingParameter($trackingApiParameter, $value)
     {
+        $matches = [];
+
+        if (preg_match('/^dimension([0-9]+)$/', $trackingApiParameter, $matches)) {
+            $this->setCustomDimension($matches[1], $value);
+            return $this;
+        }
+
         $this->customParameters[$trackingApiParameter] = $value;
         return $this;
     }
@@ -1552,8 +1592,9 @@ class MatomoTracker
                 . (!empty($this->userAgent) ? ('&ua=' . urlencode($this->userAgent)) : '')
                 . (!empty($this->acceptLanguage) ? ('&lang=' . urlencode($this->acceptLanguage)) : '');
 
-            // Clear custom variables so they don't get copied over to other users in the bulk request
+            // Clear custom variables & dimensions so they don't get copied over to other users in the bulk request
             $this->clearCustomVariables();
+            $this->clearCustomDimensions();
             $this->clearCustomTrackingParameters();
             $this->userAgent = false;
             $this->acceptLanguage = false;
@@ -1704,6 +1745,11 @@ class MatomoTracker
             $customFields = '&' . http_build_query($this->customParameters, '', '&');
         }
 
+        $customDimensions = '';
+        if (!empty($this->customDimensions)) {
+            $customDimensions = '&' . http_build_query($this->customDimensions, '', '&');
+        }
+
         $baseUrl = $this->getBaseUrl();
         $start = '?';
         if (strpos($baseUrl, '?') !== false) {
@@ -1775,7 +1821,7 @@ class MatomoTracker
             (!empty($this->city) ? '&city=' . urlencode($this->city) : '') .
             (!empty($this->lat) ? '&lat=' . urlencode($this->lat) : '') .
             (!empty($this->long) ? '&long=' . urlencode($this->long) : '') .
-            $customFields .
+            $customFields . $customDimensions .
             (!$this->sendImageResponse ? '&send_image=0' : '') .
 
             // DEBUG
@@ -1800,6 +1846,7 @@ class MatomoTracker
         $this->ecommerceView = array();
         $this->pageCustomVar = array();
         $this->eventCustomVar = array();
+        $this->clearCustomDimensions();
         $this->clearCustomTrackingParameters();
 
         // force new visit only once, user must call again setForceNewVisit()
