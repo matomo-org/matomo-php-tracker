@@ -70,6 +70,8 @@ class MatomoTracker
 
     const DEFAULT_COOKIE_PATH = '/';
 
+    private $requestMethod = null;
+
     /**
      * Builds a MatomoTracker object, used to track visits, pages and Goal conversions
      * for a specific website, by using the Matomo Tracking API.
@@ -1547,6 +1549,21 @@ class MatomoTracker
         $this->requestTimeout = $timeout;
         return $this;
     }
+	
+	/**
+     * Sets the request method to POST, which is recommended when using setTokenAuth()
+     * to prevent the token from being recorded in server logs. Avoid using redirects
+     * when using POST to prevent the loss of POST values. When using Log Analytics,
+     * be aware that POST requests are not parseable/replayable.
+     *
+     * @param string $method Either 'POST' or 'GET'
+     * @return $this
+     */
+    public function setRequestMethodNonBulk($method)
+    {
+        $this->requestMethod = strtoupper($method) === 'POST' ? 'POST' : 'GET';
+        return $this;
+    }
 
     /**
      * If a proxy is needed to look up the address of the Matomo site, set it with this
@@ -1602,6 +1619,37 @@ class MatomoTracker
             return true;
         }
 
+        $forcePostUrlEncoded = false;
+        if (!$this->doBulkRequests) {
+            if (strtoupper($this->requestMethod) === 'POST') {
+                // POST ALL parameters and have no GET parameters
+                $urlParts = explode('?', $url);
+
+                $url = $urlParts[0];
+                $data = $urlParts[1];
+                $forcePostUrlEncoded = true;
+
+                $method = 'POST';
+            }
+
+            if (!empty($this->token_auth)) {
+                $appendTokenString = '&token_auth=' . urlencode($this->token_auth);
+
+                if (empty($this->requestMethod) || $method === 'POST') {
+                    // Only post token_auth but use GET URL parameters for everything else
+                    $forcePostUrlEncoded = true;
+                    if (empty($data)) {
+                        $data = '';
+                    }
+                    $data .= $appendTokenString;
+                    $data = ltrim($data, '&'); // when no request method set we don't want it to start with '&'
+                } elseif (!empty($this->token_auth)) {
+                    // Use GET for all URL parameters
+                    $url .= $appendTokenString;
+                }
+            }
+        }
+
         $proxy = $this->getProxy();
 
         if (function_exists('curl_init') && function_exists('curl_exec')) {
@@ -1637,7 +1685,15 @@ class MatomoTracker
             }
 
             // only supports JSON data
-            if (!empty($data)) {
+            if (!empty($data) && $forcePostUrlEncoded) {
+                $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
+                $options[CURLOPT_POSTFIELDS] = $data;
+                $options[CURLOPT_POST] = true;
+                if (defined('CURL_REDIR_POST_ALL')) {
+                    $options[CURLOPT_POSTREDIR] = CURL_REDIR_POST_ALL;
+                    $options[CURLOPT_FOLLOWLOCATION] = true;
+                }
+            } elseif (!empty($data)) {
                 $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
                 $options[CURLOPT_HTTPHEADER][] = 'Expect:';
                 $options[CURLOPT_POSTFIELDS] = $data;
@@ -1681,7 +1737,10 @@ class MatomoTracker
             }
 
             // only supports JSON data
-            if (!empty($data)) {
+            if (!empty($data) && $forcePostUrlEncoded) {
+                $stream_options['http']['header'] .= "Content-Type: application/x-www-form-urlencoded \r\n";
+                $stream_options['http']['content'] = $data;
+            } elseif (!empty($data)) {
                 $stream_options['http']['header'] .= "Content-Type: application/json \r\n";
                 $stream_options['http']['content'] = $data;
             }
@@ -1772,8 +1831,6 @@ class MatomoTracker
             (!empty($this->userId) ? '&uid=' . urlencode($this->userId) : '') .
             (!empty($this->forcedDatetime) ? '&cdt=' . urlencode($this->forcedDatetime) : '') .
             (!empty($this->forcedNewVisit) ? '&new_visit=1' : '') .
-            ((!empty($this->token_auth) && !$this->doBulkRequests) ?
-                '&token_auth=' . urlencode($this->token_auth) : '') .
 
             // Values collected from cookie
             '&_idts=' . $this->createTs .
@@ -2154,5 +2211,5 @@ function Matomo_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
  * @deprecated
  */
 if (!class_exists('\PiwikTracker')) {
-    include_once('./PiwikTracker.php');
+    include_once('PiwikTracker.php');
 }
