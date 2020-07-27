@@ -406,13 +406,20 @@ class MatomoTracker
      * plugin that is not shipped with Matomo itself. Please note that custom parameters are cleared after each
      * tracking request.
      *
-     * @param string $trackingApiParameter The name of the tracking API parameter, eg 'dimension1'
+     * @param string $trackingApiParameter The name of the tracking API parameter, eg 'bw_bytes'
      * @param string $value Tracking parameter value that shall be sent for this tracking parameter.
      * @return $this
      * @throws Exception
      */
     public function setCustomTrackingParameter($trackingApiParameter, $value)
     {
+        $matches = [];
+
+        if (preg_match('/^dimension([0-9]+)$/', $trackingApiParameter, $matches)) {
+            $this->setCustomDimension($matches[1], $value);
+            return $this;
+        }
+
         $this->customParameters[$trackingApiParameter] = $value;
         return $this;
     }
