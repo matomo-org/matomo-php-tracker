@@ -148,10 +148,6 @@ class MatomoTracker
 
         $this->currentTs = time();
         $this->createTs = $this->currentTs;
-        $this->visitCount = 0;
-        $this->currentVisitTs = false;
-        $this->lastVisitTs = false;
-        $this->ecommerceLastOrderTimestamp = false;
 
         // Allow debug while blocking the request
         $this->requestTimeout = 600;
@@ -898,7 +894,6 @@ class MatomoTracker
         }
         $url = $this->getUrlTrackEcommerce($grandTotal, $subTotal, $tax, $shipping, $discount);
         $url .= '&ec_id=' . urlencode($orderId);
-        $this->ecommerceLastOrderTimestamp = $this->getTimestamp();
 
         return $url;
     }
@@ -1297,16 +1292,11 @@ class MatomoTracker
         if (strlen($parts[0]) != self::LENGTH_VISITOR_ID) {
             return false;
         }
+
         /* $this->cookieVisitorId provides backward compatibility since getVisitorId()
-        didn't change any existing VisitorId value */
+didn't change any existing VisitorId value */
         $this->cookieVisitorId = $parts[0];
         $this->createTs = $parts[1];
-        $this->visitCount = (int)$parts[2];
-        $this->currentVisitTs = $parts[3];
-        $this->lastVisitTs = $parts[4];
-        if (isset($parts[5])) {
-            $this->ecommerceLastOrderTimestamp = $parts[5];
-        }
 
         return true;
     }
@@ -1742,10 +1732,6 @@ class MatomoTracker
 
             // Values collected from cookie
             '&_idts=' . $this->createTs .
-            '&_idvc=' . $this->visitCount .
-            (!empty($this->lastVisitTs) ? '&_viewts=' . $this->lastVisitTs : '') .
-            (!empty($this->ecommerceLastOrderTimestamp) ?
-                '&_ects=' . urlencode($this->ecommerceLastOrderTimestamp) : '') .
 
             // These parameters are set by the JS, but optional when using API
             (!empty($this->plugins) ? $this->plugins : '') .
@@ -1961,9 +1947,7 @@ class MatomoTracker
         $this->setCookie('ses', '*', $this->configSessionCookieTimeout);
 
         // Set the 'id' cookie
-        $visitCount = $this->visitCount + 1;
-        $cookieValue = $this->getVisitorId() . '.' . $this->createTs . '.' . $visitCount . '.' . $this->currentTs .
-            '.' . $this->lastVisitTs . '.' . $this->ecommerceLastOrderTimestamp;
+        $cookieValue = $this->getVisitorId() . '.' . $this->createTs;
         $this->setCookie('id', $cookieValue, $this->configVisitorCookieTimeout);
 
         // Set the 'cvar' cookie
