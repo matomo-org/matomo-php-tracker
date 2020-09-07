@@ -25,5 +25,8 @@
     },
     "autoload": {
         "classmap": ["."]
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.3"
     }
 }
