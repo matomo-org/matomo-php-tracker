@@ -63,20 +63,14 @@ class MatomoTracker
     const FIRST_PARTY_COOKIES_PREFIX = '_pk_';
 
     /**
-     * Ecommerce item page view tracking stores item's metadata in these Custom Variables slots.
-     */
-    const CVAR_INDEX_ECOMMERCE_ITEM_PRICE = 2;
-    const CVAR_INDEX_ECOMMERCE_ITEM_SKU = 3;
-    const CVAR_INDEX_ECOMMERCE_ITEM_NAME = 4;
-    const CVAR_INDEX_ECOMMERCE_ITEM_CATEGORY = 5;
-
-    /**
      * Defines how many categories can be used max when calling addEcommerceItem().
      * @var int
      */
     const MAX_NUM_ECOMMERCE_ITEM_CATEGORIES = 5;
 
     const DEFAULT_COOKIE_PATH = '/';
+
+    private $requestMethod = null;
 
     /**
      * Builds a MatomoTracker object, used to track visits, pages and Goal conversions
@@ -93,9 +87,16 @@ class MatomoTracker
         $this->eventCustomVar = false;
         $this->forcedDatetime = false;
         $this->forcedNewVisit = false;
-        $this->generationTime = false;
+        $this->networkTime = false;
+        $this->serverTime = false;
+        $this->transferTime = false;
+        $this->domProcessingTime = false;
+        $this->domCompletionTime = false;
+        $this->onLoadTime = false;
         $this->pageCustomVar = false;
+        $this->ecommerceView = array();
         $this->customParameters = array();
+        $this->customDimensions = array();
         $this->customData = false;
         $this->hasCookies = false;
         $this->token_auth = false;
@@ -148,10 +149,6 @@ class MatomoTracker
 
         $this->currentTs = time();
         $this->createTs = $this->currentTs;
-        $this->visitCount = 0;
-        $this->currentVisitTs = false;
-        $this->lastVisitTs = false;
-        $this->ecommerceLastOrderTimestamp = false;
 
         // Allow debug while blocking the request
         $this->requestTimeout = 600;
@@ -210,11 +207,49 @@ class MatomoTracker
      *
      * @param int $timeMs Generation time in ms
      * @return $this
+     *
+     * @deprecated this metric is deprecated please use performance timings instead
+     * @see setPerformanceTimings
      */
     public function setGenerationTime($timeMs)
     {
-        $this->generationTime = $timeMs;
         return $this;
+    }
+
+    /**
+     * Sets timings for various browser performance metrics.
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceTiming
+     *
+     * @param null|int $network Network time in ms (connectEnd – fetchStart)
+     * @param null|int $server Server time in ms (responseStart – requestStart)
+     * @param null|int $transfer Transfer time in ms (responseEnd – responseStart)
+     * @param null|int $domProcessing DOM Processing to Interactive time in ms (domInteractive – domLoading)
+     * @param null|int $domCompletion DOM Interactive to Complete time in ms (domComplete – domInteractive)
+     * @param null|int $onload Onload time in ms (loadEventEnd – loadEventStart)
+     * @return $this
+     */
+    public function setPerformanceTimings($network = null, $server = null, $transfer = null, $domProcessing = null, $domCompletion = null, $onload = null)
+    {
+        $this->networkTime = $network;
+        $this->serverTime = $server;
+        $this->transferTime = $transfer;
+        $this->domProcessingTime = $domProcessing;
+        $this->domCompletionTime = $domCompletion;
+        $this->onLoadTime = $onload;
+        return $this;
+    }
+
+    /**
+     * Clear / reset all previously set performance metrics.
+     */
+    public function clearPerformanceTimings()
+    {
+        $this->networkTime = false;
+        $this->serverTime = false;
+        $this->transferTime = false;
+        $this->domProcessingTime = false;
+        $this->domCompletionTime = false;
+        $this->onLoadTime = false;
     }
 
     /**
@@ -336,17 +371,56 @@ class MatomoTracker
     }
 
     /**
+     * Sets a specific custom dimension
+     *
+     * @param int $id id of custom dimension
+     * @param string $value value for custom dimension
+     * @return $this
+     */
+    public function setCustomDimension($id, $value)
+    {
+        $this->customDimensions['dimension'.(int)$id] = $value;
+        return $this;
+    }
+
+    /**
+     * Clears all previously set custom dimensions
+     */
+    public function clearCustomDimensions()
+    {
+        $this->customDimensions = [];
+    }
+
+    /**
+     * Returns the value of the custom dimension with the given id
+     *
+     * @param int $id id of custom dimension
+     * @return string|null
+     */
+    public function getCustomDimension($id)
+    {
+        return $this->customDimensions['dimension'.(int)$id] ?? null;
+    }
+
+    /**
      * Sets a custom tracking parameter. This is useful if you need to send any tracking parameters for a 3rd party
      * plugin that is not shipped with Matomo itself. Please note that custom parameters are cleared after each
      * tracking request.
      *
-     * @param string $trackingApiParameter The name of the tracking API parameter, eg 'dimension1'
+     * @param string $trackingApiParameter The name of the tracking API parameter, eg 'bw_bytes'
      * @param string $value Tracking parameter value that shall be sent for this tracking parameter.
      * @return $this
      * @throws Exception
      */
     public function setCustomTrackingParameter($trackingApiParameter, $value)
     {
+        $matches = [];
+
+        if (preg_match('/^dimension([0-9]+)$/', $trackingApiParameter, $matches)) {
+            $this->setCustomDimension($matches[1], $value);
+            return $this;
+        }
+
         $this->customParameters[$trackingApiParameter] = $value;
         return $this;
     }
@@ -803,8 +877,6 @@ class MatomoTracker
      * Sets the current page view as an item (product) page view, or an Ecommerce Category page view.
      *
      * This must be called before doTrackPageView() on this product/category page.
-     * It will set 3 custom variables of scope "page" with the SKU, Name and Category for this page view.
-     * Note: Custom Variables of scope "page" slots 3, 4 and 5 will be used.
      *
      * On a category page, you may set the parameter $category only and set the other parameters to false.
      *
@@ -820,6 +892,8 @@ class MatomoTracker
      */
     public function setEcommerceView($sku = '', $name = '', $category = '', $price = 0.0)
     {
+        $this->ecommerceView = [];
+
         if (!empty($category)) {
             if (is_array($category)) {
                 $category = json_encode($category);
@@ -827,12 +901,12 @@ class MatomoTracker
         } else {
             $category = "";
         }
-        $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_CATEGORY] = array('_pkc', $category);
+        $this->ecommerceView['_pkc'] = $category;
 
         if (!empty($price)) {
             $price = (float)$price;
             $price = $this->forceDotAsSeparatorForDecimalPoint($price);
-            $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_PRICE] = array('_pkp', $price);
+            $this->ecommerceView['_pkp'] = $price;
         }
 
         // On a category page, do not record "Product name not defined"
@@ -840,12 +914,12 @@ class MatomoTracker
             return $this;
         }
         if (!empty($sku)) {
-            $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_SKU] = array('_pks', $sku);
+            $this->ecommerceView['_pks'] = $sku;
         }
         if (empty($name)) {
             $name = "";
         }
-        $this->pageCustomVar[self::CVAR_INDEX_ECOMMERCE_ITEM_NAME] = array('_pkn', $name);
+        $this->ecommerceView['_pkn'] = $name;
         return $this;
     }
 
@@ -898,7 +972,6 @@ class MatomoTracker
         }
         $url = $this->getUrlTrackEcommerce($grandTotal, $subTotal, $tax, $shipping, $discount);
         $url .= '&ec_id=' . urlencode($orderId);
-        $this->ecommerceLastOrderTimestamp = $this->getTimestamp();
 
         return $url;
     }
@@ -1297,16 +1370,11 @@ class MatomoTracker
         if (strlen($parts[0]) != self::LENGTH_VISITOR_ID) {
             return false;
         }
+
         /* $this->cookieVisitorId provides backward compatibility since getVisitorId()
-        didn't change any existing VisitorId value */
+didn't change any existing VisitorId value */
         $this->cookieVisitorId = $parts[0];
         $this->createTs = $parts[1];
-        $this->visitCount = (int)$parts[2];
-        $this->currentVisitTs = $parts[3];
-        $this->lastVisitTs = $parts[4];
-        if (isset($parts[5])) {
-            $this->ecommerceLastOrderTimestamp = $parts[5];
-        }
 
         return true;
     }
@@ -1416,36 +1484,30 @@ class MatomoTracker
      *
      * @param bool $flash
      * @param bool $java
-     * @param bool $director
      * @param bool $quickTime
      * @param bool $realPlayer
      * @param bool $pdf
      * @param bool $windowsMedia
-     * @param bool $gears
      * @param bool $silverlight
      * @return $this
      */
     public function setPlugins(
         $flash = false,
         $java = false,
-        $director = false,
         $quickTime = false,
         $realPlayer = false,
         $pdf = false,
         $windowsMedia = false,
-        $gears = false,
         $silverlight = false
     )
     {
         $this->plugins =
             '&fla=' . (int)$flash .
             '&java=' . (int)$java .
-            '&dir=' . (int)$director .
             '&qt=' . (int)$quickTime .
             '&realp=' . (int)$realPlayer .
             '&pdf=' . (int)$pdf .
             '&wma=' . (int)$windowsMedia .
-            '&gears=' . (int)$gears .
             '&ag=' . (int)$silverlight;
         return $this;
     }
@@ -1546,8 +1608,9 @@ class MatomoTracker
                 . (!empty($this->userAgent) ? ('&ua=' . urlencode($this->userAgent)) : '')
                 . (!empty($this->acceptLanguage) ? ('&lang=' . urlencode($this->acceptLanguage)) : '');
 
-            // Clear custom variables so they don't get copied over to other users in the bulk request
+            // Clear custom variables & dimensions so they don't get copied over to other users in the bulk request
             $this->clearCustomVariables();
+            $this->clearCustomDimensions();
             $this->clearCustomTrackingParameters();
             $this->userAgent = false;
             $this->acceptLanguage = false;
@@ -1555,19 +1618,38 @@ class MatomoTracker
             return true;
         }
 
-        $proxy = $this->getProxy();
+        $forcePostUrlEncoded = false;
+        if (!$this->doBulkRequests) {
+            if (strtoupper($this->requestMethod) === 'POST') {
+                // POST ALL parameters and have no GET parameters
+                $urlParts = explode('?', $url);
 
-        if (isset($this->requestMethod)
-            && $this->requestMethod === 'POST'
-            && !$this->doBulkRequests
-        ) {
-            $urlParts = explode('?', $url);
-			
-            $url = $urlParts[0];
-            $postData = $urlParts[1];
-			
-            $method = 'POST';
+                $url = $urlParts[0];
+                $data = $urlParts[1];
+                $forcePostUrlEncoded = true;
+
+                $method = 'POST';
+            }
+
+            if (!empty($this->token_auth)) {
+                $appendTokenString = '&token_auth=' . urlencode($this->token_auth);
+
+                if (empty($this->requestMethod) || $method === 'POST') {
+                    // Only post token_auth but use GET URL parameters for everything else
+                    $forcePostUrlEncoded = true;
+                    if (empty($data)) {
+                        $data = '';
+                    }
+                    $data .= $appendTokenString;
+                    $data = ltrim($data, '&'); // when no request method set we don't want it to start with '&'
+                } elseif (!empty($this->token_auth)) {
+                    // Use GET for all URL parameters
+                    $url .= $appendTokenString;
+                }
+            }
         }
+
+        $proxy = $this->getProxy();
 
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = array(
@@ -1600,14 +1682,17 @@ class MatomoTracker
                 default:
                     break;
             }
-			
-            if (isset($postData)) {
-                $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
-                $options[CURLOPT_POSTFIELDS] = $postData;
-            }
 
             // only supports JSON data
-            if (!empty($data)) {
+            if (!empty($data) && $forcePostUrlEncoded) {
+                $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
+                $options[CURLOPT_POSTFIELDS] = $data;
+                $options[CURLOPT_POST] = true;
+                if (defined('CURL_REDIR_POST_ALL')) {
+                    $options[CURLOPT_POSTREDIR] = CURL_REDIR_POST_ALL;
+                    $options[CURLOPT_FOLLOWLOCATION] = true;
+                }
+            } elseif (!empty($data)) {
                 $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
                 $options[CURLOPT_HTTPHEADER][] = 'Expect:';
                 $options[CURLOPT_POSTFIELDS] = $data;
@@ -1625,6 +1710,11 @@ class MatomoTracker
             ob_end_clean();
             $header = '';
             $content = '';
+            
+            if ($response === false) {
+                throw new \RuntimeException(curl_error($ch));
+            }
+            
             if (!empty($response)) {
                 list($header, $content) = explode("\r\n\r\n", $response, $limitCount = 2);
             }
@@ -1644,14 +1734,12 @@ class MatomoTracker
             if (isset($proxy)) {
                 $stream_options['http']['proxy'] = $proxy;
             }
-			
-            if (isset($postData)) {
-                $stream_options['http']['header'] .= 'Content-Type: application/x-www-form-urlencoded';
-                $stream_options['http']['content'] = $postData;
-            }
 
             // only supports JSON data
-            if (!empty($data)) {
+            if (!empty($data) && $forcePostUrlEncoded) {
+                $stream_options['http']['header'] .= "Content-Type: application/x-www-form-urlencoded \r\n";
+                $stream_options['http']['content'] = $data;
+            } elseif (!empty($data)) {
                 $stream_options['http']['header'] .= "Content-Type: application/json \r\n";
                 $stream_options['http']['content'] = $data;
             }
@@ -1715,6 +1803,11 @@ class MatomoTracker
             $customFields = '&' . http_build_query($this->customParameters, '', '&');
         }
 
+        $customDimensions = '';
+        if (!empty($this->customDimensions)) {
+            $customDimensions = '&' . http_build_query($this->customDimensions, '', '&');
+        }
+
         $baseUrl = $this->getBaseUrl();
         $start = '?';
         if (strpos($baseUrl, '?') !== false) {
@@ -1737,15 +1830,9 @@ class MatomoTracker
             (!empty($this->userId) ? '&uid=' . urlencode($this->userId) : '') .
             (!empty($this->forcedDatetime) ? '&cdt=' . urlencode($this->forcedDatetime) : '') .
             (!empty($this->forcedNewVisit) ? '&new_visit=1' : '') .
-            ((!empty($this->token_auth) && !$this->doBulkRequests) ?
-                '&token_auth=' . urlencode($this->token_auth) : '') .
 
             // Values collected from cookie
             '&_idts=' . $this->createTs .
-            '&_idvc=' . $this->visitCount .
-            (!empty($this->lastVisitTs) ? '&_viewts=' . $this->lastVisitTs : '') .
-            (!empty($this->ecommerceLastOrderTimestamp) ?
-                '&_ects=' . urlencode($this->ecommerceLastOrderTimestamp) : '') .
 
             // These parameters are set by the JS, but optional when using API
             (!empty($this->plugins) ? $this->plugins : '') .
@@ -1759,7 +1846,6 @@ class MatomoTracker
             (!empty($this->visitorCustomVar) ? '&_cvar=' . urlencode(json_encode($this->visitorCustomVar)) : '') .
             (!empty($this->pageCustomVar) ? '&cvar=' . urlencode(json_encode($this->pageCustomVar)) : '') .
             (!empty($this->eventCustomVar) ? '&e_cvar=' . urlencode(json_encode($this->eventCustomVar)) : '') .
-            (!empty($this->generationTime) ? '&gt_ms=' . ((int)$this->generationTime) : '') .
             (!empty($this->forcedVisitorId) ? '&cid=' . $this->forcedVisitorId : '&_id=' . $this->getVisitorId()) .
 
             // URL parameters
@@ -1787,16 +1873,32 @@ class MatomoTracker
             (!empty($this->city) ? '&city=' . urlencode($this->city) : '') .
             (!empty($this->lat) ? '&lat=' . urlencode($this->lat) : '') .
             (!empty($this->long) ? '&long=' . urlencode($this->long) : '') .
-            $customFields .
+            $customFields . $customDimensions .
             (!$this->sendImageResponse ? '&send_image=0' : '') .
 
             // DEBUG
             $this->DEBUG_APPEND_URL;
 
+        if (!empty($this->idPageview)) {
+            $url .=
+                ($this->networkTime !== false ? '&pf_net=' . ((int)$this->networkTime) : '') .
+                ($this->serverTime !== false ? '&pf_srv=' . ((int)$this->serverTime) : '') .
+                ($this->transferTime !== false ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
+                ($this->domProcessingTime !== false ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
+                ($this->domCompletionTime !== false ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
+                ($this->onLoadTime !== false ? '&pf_onl=' . ((int)$this->onLoadTime) : '');
+            $this->clearPerformanceTimings();
+        }
+
+        foreach ($this->ecommerceView as $param => $value) {
+            $url .= '&' . $param . '=' . urlencode($value);
+        }
 
         // Reset page level custom variables after this page view
+        $this->ecommerceView = array();
         $this->pageCustomVar = array();
         $this->eventCustomVar = array();
+        $this->clearCustomDimensions();
         $this->clearCustomTrackingParameters();
 
         // force new visit only once, user must call again setForceNewVisit()
@@ -1961,9 +2063,7 @@ class MatomoTracker
         $this->setCookie('ses', '*', $this->configSessionCookieTimeout);
 
         // Set the 'id' cookie
-        $visitCount = $this->visitCount + 1;
-        $cookieValue = $this->getVisitorId() . '.' . $this->createTs . '.' . $visitCount . '.' . $this->currentTs .
-            '.' . $this->lastVisitTs . '.' . $this->ecommerceLastOrderTimestamp;
+        $cookieValue = $this->getVisitorId() . '.' . $this->createTs;
         $this->setCookie('id', $cookieValue, $this->configVisitorCookieTimeout);
 
         // Set the 'cvar' cookie
