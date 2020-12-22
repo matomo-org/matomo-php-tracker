@@ -200,7 +200,7 @@ class MatomoTracker
     }
 
     /**
-     * Sets the time that generating the document on the server side took.
+     * This method is deprecated and does nothing. It used to set the time that it took to generate the document on the server side.
      *
      * @param int $timeMs Generation time in ms
      * @return $this
