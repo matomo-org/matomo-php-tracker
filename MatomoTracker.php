@@ -2076,13 +2076,24 @@ didn't change any existing VisitorId value */
     {
         $cookieExpire = $this->currentTs + $cookieTTL;
         if (!headers_sent()) {
-            setcookie(
-                $this->getCookieName($cookieName),
-                $cookieValue,
-                $cookieExpire,
-                $this->configCookiePath,
-                $this->configCookieDomain
-            );
+            if (version_compare(PHP_VERSION, '7.3') >= 0) {
+                setcookie($this->getCookieName($cookieName), $cookieValue, [
+                    'expires' => $cookieExpire,
+                    'path' => $this->configCookiePath,
+                    'domain' => $this->configCookieDomain,
+                    'secure' => true,
+                    'httponly' => false,
+                    'samesite' => 'Lax'
+                ]);
+            } else {
+                setcookie(
+                    $this->getCookieName($cookieName),
+                    $cookieValue,
+                    $cookieExpire,
+                    $this->configCookiePath,
+                    $this->configCookieDomain
+                );
+            }
         }
         return $this;
     }
