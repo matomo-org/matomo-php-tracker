@@ -1708,15 +1708,21 @@ didn't change any existing VisitorId value */
             ob_start();
             $response = @curl_exec($ch);
             ob_end_clean();
+            
             $header = '';
             $content = '';
-            
+
             if ($response === false) {
                 throw new \RuntimeException(curl_error($ch));
             }
-            
+
             if (!empty($response)) {
-                list($header, $content) = explode("\r\n\r\n", $response, $limitCount = 2);
+                // extract header
+                $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+                $header = substr($response, 0, $headerSize);
+
+                // extract content
+                $content = substr($response, $headerSize);
             }
 
             $this->parseIncomingCookies(explode("\r\n", $header));
