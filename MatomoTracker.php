@@ -82,9 +82,9 @@ class MatomoTracker
      */
     public function __construct($idSite, $apiUrl = '')
     {
-        $this->ecommerceItems = array();
+        $this->ecommerceItems = [];
         $this->attributionInfo = false;
-        $this->eventCustomVar = false;
+        $this->eventCustomVar = [];
         $this->forcedDatetime = false;
         $this->forcedNewVisit = false;
         $this->networkTime = false;
@@ -93,10 +93,10 @@ class MatomoTracker
         $this->domProcessingTime = false;
         $this->domCompletionTime = false;
         $this->onLoadTime = false;
-        $this->pageCustomVar = false;
-        $this->ecommerceView = array();
-        $this->customParameters = array();
-        $this->customDimensions = array();
+        $this->pageCustomVar = [];
+        $this->ecommerceView = [];
+        $this->customParameters = [];
+        $this->customDimensions = [];
         $this->customData = false;
         $this->hasCookies = false;
         $this->token_auth = false;
@@ -153,14 +153,14 @@ class MatomoTracker
         // Allow debug while blocking the request
         $this->requestTimeout = 600;
         $this->doBulkRequests = false;
-        $this->storedTrackingActions = array();
+        $this->storedTrackingActions = [];
 
         $this->sendImageResponse = true;
 
         $this->visitorCustomVar = $this->getCustomVariablesFromCookie();
 
-        $this->outgoingTrackerCookies = array();
-        $this->incomingTrackerCookies = array();
+        $this->outgoingTrackerCookies = [];
+        $this->incomingTrackerCookies = [];
     }
 
     /**
@@ -365,9 +365,9 @@ class MatomoTracker
      */
     public function clearCustomVariables()
     {
-        $this->visitorCustomVar = array();
-        $this->pageCustomVar = array();
-        $this->eventCustomVar = array();
+        $this->visitorCustomVar = [];
+        $this->pageCustomVar = [];
+        $this->eventCustomVar = [];
     }
 
     /**
@@ -2105,13 +2105,13 @@ didn't change any existing VisitorId value */
     }
 
     /**
-     * @return bool|mixed
+     * @return array
      */
     protected function getCustomVariablesFromCookie()
     {
         $cookie = $this->getCookieMatchingName('cvar');
         if (!$cookie) {
-            return false;
+            return [];
         }
 
         return json_decode($cookie, $assoc = true);
