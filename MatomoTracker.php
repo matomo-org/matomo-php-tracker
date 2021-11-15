@@ -1620,7 +1620,7 @@ didn't change any existing VisitorId value */
 
         $forcePostUrlEncoded = false;
         if (!$this->doBulkRequests) {
-            if (strtoupper($this->requestMethod) === 'POST') {
+            if (!empty($this->requestMethod) && strtoupper($this->requestMethod) === 'POST') {
                 // POST ALL parameters and have no GET parameters
                 $urlParts = explode('?', $url);
 
