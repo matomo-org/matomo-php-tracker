@@ -1595,6 +1595,102 @@ didn't change any existing VisitorId value */
     static public $DEBUG_LAST_REQUESTED_URL = false;
 
     /**
+     * Returns array of curl options for request
+     */
+    protected function prepareCurlOptions($url, $method, $data, $forcePostUrlEncoded)
+    {
+        $options = array(
+            CURLOPT_URL => $url,
+            CURLOPT_USERAGENT => $this->userAgent,
+            CURLOPT_HEADER => true,
+            CURLOPT_TIMEOUT => $this->requestTimeout,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => array(
+                'Accept-Language: ' . $this->acceptLanguage,
+            ),
+        );
+
+        if ($method === 'GET') {
+            $options[CURLOPT_FOLLOWLOCATION] = true;
+        }
+
+        if (defined('PATH_TO_CERTIFICATES_FILE')) {
+            $options[CURLOPT_CAINFO] = PATH_TO_CERTIFICATES_FILE;
+        }
+
+        $proxy = $this->getProxy();
+        if (isset($proxy)) {
+            $options[CURLOPT_PROXY] = $proxy;
+        }
+
+        switch ($method) {
+            case 'POST':
+                $options[CURLOPT_POST] = true;
+                break;
+            default:
+                break;
+        }
+
+        // only supports JSON data
+        if (!empty($data) && $forcePostUrlEncoded) {
+            $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
+            $options[CURLOPT_POSTFIELDS] = $data;
+            $options[CURLOPT_POST] = true;
+            if (defined('CURL_REDIR_POST_ALL')) {
+                $options[CURLOPT_POSTREDIR] = CURL_REDIR_POST_ALL;
+                $options[CURLOPT_FOLLOWLOCATION] = true;
+            }
+        } elseif (!empty($data)) {
+            $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
+            $options[CURLOPT_HTTPHEADER][] = 'Expect:';
+            $options[CURLOPT_POSTFIELDS] = $data;
+        }
+
+        if (!empty($this->outgoingTrackerCookies)) {
+            $options[CURLOPT_COOKIE] = http_build_query($this->outgoingTrackerCookies);
+            $this->outgoingTrackerCookies = array();
+        }
+
+        return $options;
+    }
+
+    /**
+     * Returns array of stream options for request
+     */
+    protected function prepareStreamOptions($method, $data, $forcePostUrlEncoded)
+    {
+        $stream_options = array(
+            'http' => array(
+                'method' => $method,
+                'user_agent' => $this->userAgent,
+                'header' => "Accept-Language: " . $this->acceptLanguage . "\r\n",
+                'timeout' => $this->requestTimeout,
+            ),
+        );
+
+        $proxy = $this->getProxy();
+        if (isset($proxy)) {
+            $stream_options['http']['proxy'] = $proxy;
+        }
+
+        // only supports JSON data
+        if (!empty($data) && $forcePostUrlEncoded) {
+            $stream_options['http']['header'] .= "Content-Type: application/x-www-form-urlencoded \r\n";
+            $stream_options['http']['content'] = $data;
+        } elseif (!empty($data)) {
+            $stream_options['http']['header'] .= "Content-Type: application/json \r\n";
+            $stream_options['http']['content'] = $data;
+        }
+
+        if (!empty($this->outgoingTrackerCookies)) {
+            $stream_options['http']['header'] .= 'Cookie: ' . http_build_query($this->outgoingTrackerCookies) . "\r\n";
+            $this->outgoingTrackerCookies = array();
+        }
+
+        return $stream_options;
+    }
+
+    /**
      * @ignore
      */
     protected function sendRequest($url, $method = 'GET', $data = null, $force = false)
@@ -1649,59 +1745,8 @@ didn't change any existing VisitorId value */
             }
         }
 
-        $proxy = $this->getProxy();
-
         if (function_exists('curl_init') && function_exists('curl_exec')) {
-            $options = array(
-                CURLOPT_URL => $url,
-                CURLOPT_USERAGENT => $this->userAgent,
-                CURLOPT_HEADER => true,
-                CURLOPT_TIMEOUT => $this->requestTimeout,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HTTPHEADER => array(
-                    'Accept-Language: ' . $this->acceptLanguage,
-                ),
-            );
-
-            if ($method === 'GET') {
-                $options[CURLOPT_FOLLOWLOCATION] = true;
-            }
-
-            if (defined('PATH_TO_CERTIFICATES_FILE')) {
-                $options[CURLOPT_CAINFO] = PATH_TO_CERTIFICATES_FILE;
-            }
-
-            if (isset($proxy)) {
-                $options[CURLOPT_PROXY] = $proxy;
-            }
-
-            switch ($method) {
-                case 'POST':
-                    $options[CURLOPT_POST] = true;
-                    break;
-                default:
-                    break;
-            }
-
-            // only supports JSON data
-            if (!empty($data) && $forcePostUrlEncoded) {
-                $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/x-www-form-urlencoded';
-                $options[CURLOPT_POSTFIELDS] = $data;
-                $options[CURLOPT_POST] = true;
-                if (defined('CURL_REDIR_POST_ALL')) {
-                    $options[CURLOPT_POSTREDIR] = CURL_REDIR_POST_ALL;
-                    $options[CURLOPT_FOLLOWLOCATION] = true;
-                }
-            } elseif (!empty($data)) {
-                $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
-                $options[CURLOPT_HTTPHEADER][] = 'Expect:';
-                $options[CURLOPT_POSTFIELDS] = $data;
-            }
-
-            if (!empty($this->outgoingTrackerCookies)) {
-                $options[CURLOPT_COOKIE] = http_build_query($this->outgoingTrackerCookies);
-                $this->outgoingTrackerCookies = array();
-            }
+            $options = $this->prepareCurlOptions($url, $method, $data, $forcePostUrlEncoded);
 
             $ch = curl_init();
             curl_setopt_array($ch, $options);
@@ -1728,32 +1773,7 @@ didn't change any existing VisitorId value */
             $this->parseIncomingCookies(explode("\r\n", $header));
 
         } elseif (function_exists('stream_context_create')) {
-            $stream_options = array(
-                'http' => array(
-                    'method' => $method,
-                    'user_agent' => $this->userAgent,
-                    'header' => "Accept-Language: " . $this->acceptLanguage . "\r\n",
-                    'timeout' => $this->requestTimeout,
-                ),
-            );
-
-            if (isset($proxy)) {
-                $stream_options['http']['proxy'] = $proxy;
-            }
-
-            // only supports JSON data
-            if (!empty($data) && $forcePostUrlEncoded) {
-                $stream_options['http']['header'] .= "Content-Type: application/x-www-form-urlencoded \r\n";
-                $stream_options['http']['content'] = $data;
-            } elseif (!empty($data)) {
-                $stream_options['http']['header'] .= "Content-Type: application/json \r\n";
-                $stream_options['http']['content'] = $data;
-            }
-
-            if (!empty($this->outgoingTrackerCookies)) {
-                $stream_options['http']['header'] .= 'Cookie: ' . http_build_query($this->outgoingTrackerCookies) . "\r\n";
-                $this->outgoingTrackerCookies = array();
-            }
+            $stream_options = $this->prepareStreamOptions($method, $data, $forcePostUrlEncoded);
 
             $ctx = stream_context_create($stream_options);
             $response = file_get_contents($url, 0, $ctx);
