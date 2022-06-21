@@ -123,11 +123,11 @@ class MatomoTracker
         $this->userAgent = !empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : false;
         $this->clientHints = [];
         $this->setClientHints(
-            $_SERVER['HTTP_SEC_CH_UA_MODEL'] ?? '',
-            $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] ?? '',
-            $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] ?? '',
-            $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] ?? '',
-            $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION'] ?? ''
+            !empty($_SERVER['HTTP_SEC_CH_UA_MODEL']) ? $_SERVER['HTTP_SEC_CH_UA_MODEL'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION'] : ''
         );
         if (!empty($apiUrl)) {
             self::$URL = $apiUrl;
@@ -494,6 +494,8 @@ class MatomoTracker
      * Sets the client hints, used to detect OS and browser.
      * If this function is not called, the client hints sent with the current request will be used.
      *
+     * Supported as of Matomo 4.12.0
+     *
      * @param string $model  Value of the header 'HTTP_SEC_CH_UA_MODEL'
      * @param string $platform  Value of the header 'HTTP_SEC_CH_UA_PLATFORM'
      * @param string $platformVersion  Value of the header 'HTTP_SEC_CH_UA_PLATFORM_VERSION'
@@ -510,9 +512,9 @@ class MatomoTracker
             $reg  = '/^"([^"]+)"; ?v="([^"]+)"(?:, )?/';
             $list = [];
 
-            while (\preg_match($reg, $value, $matches)) {
+            while (\preg_match($reg, $fullVersionList, $matches)) {
                 $list[] = ['brand' => $matches[1], 'version' => $matches[2]];
-                $value  = \substr($value, \strlen($matches[0]));
+                $fullVersionList  = \substr($fullVersionList, \strlen($matches[0]));
             }
 
             $fullVersionList = $list;
@@ -1751,7 +1753,6 @@ didn't change any existing VisitorId value */
             $this->storedTrackingActions[]
                 = $url
                 . (!empty($this->userAgent) ? ('&ua=' . urlencode($this->userAgent)) : '')
-                . (!empty($this->clientHints) ? ('&uadata=' . urlencode(json_encode($this->clientHints))) : '')
                 . (!empty($this->acceptLanguage) ? ('&lang=' . urlencode($this->acceptLanguage)) : '');
 
             // Clear custom variables & dimensions so they don't get copied over to other users in the bulk request
@@ -1952,6 +1953,9 @@ didn't change any existing VisitorId value */
             (!empty($this->long) ? '&long=' . urlencode($this->long) : '') .
             $customFields . $customDimensions .
             (!$this->sendImageResponse ? '&send_image=0' : '') .
+
+            // client hints
+            (!empty($this->clientHints) ? ('&uadata=' . urlencode(json_encode($this->clientHints))) : '') .
 
             // DEBUG
             $this->DEBUG_APPEND_URL;
