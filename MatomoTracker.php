@@ -121,6 +121,14 @@ class MatomoTracker
         $this->ip = !empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
         $this->acceptLanguage = !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : false;
         $this->userAgent = !empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : false;
+        $this->clientHints = [];
+        $this->setClientHints(
+            !empty($_SERVER['HTTP_SEC_CH_UA_MODEL']) ? $_SERVER['HTTP_SEC_CH_UA_MODEL'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION'] : ''
+        );
         if (!empty($apiUrl)) {
             self::$URL = $apiUrl;
         }
@@ -479,6 +487,49 @@ class MatomoTracker
     public function setUserAgent($userAgent)
     {
         $this->userAgent = $userAgent;
+        return $this;
+    }
+
+    /**
+     * Sets the client hints, used to detect OS and browser.
+     * If this function is not called, the client hints sent with the current request will be used.
+     *
+     * Supported as of Matomo 4.12.0
+     *
+     * @param string $model  Value of the header 'HTTP_SEC_CH_UA_MODEL'
+     * @param string $platform  Value of the header 'HTTP_SEC_CH_UA_PLATFORM'
+     * @param string $platformVersion  Value of the header 'HTTP_SEC_CH_UA_PLATFORM_VERSION'
+     * @param string|array $fullVersionList Value of header 'HTTP_SEC_CH_UA_FULL_VERSION_LIST' or an array containing
+     *                                      all brands with the structure
+     *                                      [['brand' => 'Chrome', 'version' => '10.0.2'], ['brand' => '...]
+     * @param string $uaFullVersion  Value of the header 'HTTP_SEC_CH_UA_FULL_VERSION'
+     *
+     * @return $this
+     */
+    public function setClientHints($model = '', $platform = '', $platformVersion = '', $fullVersionList = '', $uaFullVersion = '')
+    {
+        if (is_string($fullVersionList)) {
+            $reg  = '/^"([^"]+)"; ?v="([^"]+)"(?:, )?/';
+            $list = [];
+
+            while (\preg_match($reg, $fullVersionList, $matches)) {
+                $list[] = ['brand' => $matches[1], 'version' => $matches[2]];
+                $fullVersionList  = \substr($fullVersionList, \strlen($matches[0]));
+            }
+
+            $fullVersionList = $list;
+        } elseif (!is_array($fullVersionList)) {
+            $fullVersionList = [];
+        }
+
+        $this->clientHints = array_filter([
+            'model' => $model,
+            'platform' => $platform,
+            'platformVersion' => $platformVersion,
+            'uaFullVersion' => $uaFullVersion,
+            'fullVersionList' => $fullVersionList,
+        ]);
+
         return $this;
     }
 
@@ -1709,6 +1760,7 @@ didn't change any existing VisitorId value */
             $this->clearCustomDimensions();
             $this->clearCustomTrackingParameters();
             $this->userAgent = false;
+            $this->clientHints = false;
             $this->acceptLanguage = false;
 
             return true;
@@ -1901,6 +1953,9 @@ didn't change any existing VisitorId value */
             (!empty($this->long) ? '&long=' . urlencode($this->long) : '') .
             $customFields . $customDimensions .
             (!$this->sendImageResponse ? '&send_image=0' : '') .
+
+            // client hints
+            (!empty($this->clientHints) ? ('&uadata=' . urlencode(json_encode($this->clientHints))) : '') .
 
             // DEBUG
             $this->DEBUG_APPEND_URL;
