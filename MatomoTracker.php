@@ -1927,8 +1927,8 @@ didn't change any existing VisitorId value */
             (!empty($this->forcedVisitorId) ? '&cid=' . $this->forcedVisitorId : '&_id=' . $this->getVisitorId()) .
 
             // URL parameters
-            '&url=' . urlencode($this->pageUrl) .
-            '&urlref=' . urlencode($this->urlReferrer) .
+            '&url=' . urlencode($this->pageUrl ?? '') .
+            '&urlref=' . urlencode($this->urlReferrer ?? '') .
             ((!empty($this->pageCharset) && $this->pageCharset != self::DEFAULT_CHARSET_PARAMETER_VALUES) ?
                 '&cs=' . $this->pageCharset : '') .
 
