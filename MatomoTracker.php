@@ -1306,7 +1306,7 @@ class MatomoTracker
     public function getUrlTrackCrash($message, $type = null, $category = null, $stack = null, $location = null, $line = null, $column = null)
     {
         $url = $this->getRequest($this->idSite);
-        $url .= '&cra=' . urlencode($message);
+        $url .= '&ca=1&cra=' . urlencode($message);
         if ($type) {
             $url .= '&cra_tp=' . urlencode($type);
         }
