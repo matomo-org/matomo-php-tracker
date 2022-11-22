@@ -908,6 +908,47 @@ class MatomoTracker
     }
 
     /**
+     * Tracks a PHP Throwable a crash (requires CrashAnalytics to be enabled in the target Matomo)
+     *
+     * @param Throwable $ex (required) the throwable to track. The message, stack trace, file location and line number
+     *                      of the crash are deduced from this parameter. The crash type is set to the class name of
+     *                      the Throwable.
+     * @param string|null $category (optional) a category value for this crash. This can be any information you want
+     *                              to attach to the crash.
+     * @return mixed Response or true if using bulk request
+     */
+    public function doTrackPhpThrowable(\Throwable $ex, $category = null)
+    {
+        $message = $ex->getMessage();
+        $stack = $ex->getTraceAsString();
+        $type = get_class($ex);
+        $location = $ex->getFile();
+        $line = $ex->getLine();
+
+        return $this->doTrackCrash($message, $type, $category, $stack, $location, $line);
+    }
+
+    /**
+     * Track a crash (requires CrashAnalytics to be enabled in the target Matomo)
+     *
+     * @param string $message (required) the error message.
+     * @param string|null $type (optional) the error type, such as the class name of an Exception.
+     * @param string|null $category (optional) a category value for this crash. This can be any information you want
+     *                              to attach to the crash.
+     * @param string|null $stack (optional) the stack trace of the crash.
+     * @param string|null $location (optional) the source file URI where the crash originated.
+     * @param int|null $line (optional) the source file line where the crash originated.
+     * @param int|null $column (optional) the source file column where the crash originated.
+     * @return mixed Response or true if using bulk request
+     */
+    public function doTrackCrash($message, $type = null, $category = null, $stack = null, $location = null, $line = null, $column = null)
+    {
+        $url = $this->getUrlTrackCrash($message, $type, $category, $stack, $location, $line, $column);
+
+        return $this->sendRequest($url);
+    }
+
+    /**
      * Sends a ping request.
      *
      * Ping requests do not track new actions. If they are sent within the standard visit length (see global.ini.php),
@@ -1244,6 +1285,46 @@ class MatomoTracker
     {
         $url = $this->getRequest($this->idSite);
         $url .= '&' . $actionType . '=' . urlencode($actionUrl);
+
+        return $url;
+    }
+
+    /**
+     * Builds URL to track a crash.
+     *
+     * @see doTrackCrash()
+     * @param string $message (required) the error message.
+     * @param string|null $type (optional) the error type, such as the class name of an Exception.
+     * @param string|null $category (optional) a category value for this crash. This can be any information you want
+     *                              to attach to the crash.
+     * @param string|null $stack (optional) the stack trace of the crash.
+     * @param string|null $location (optional) the source file URI where the crash originated.
+     * @param int|null $line (optional) the source file line where the crash originated.
+     * @param int|null $column (optional) the source file column where the crash originated.
+     * @return string URL to matomo.php with all parameters set to track an action
+     */
+    public function getUrlTrackCrash($message, $type = null, $category = null, $stack = null, $location = null, $line = null, $column = null)
+    {
+        $url = $this->getRequest($this->idSite);
+        $url .= '&cra=' . urlencode($message);
+        if ($type) {
+            $url .= '&cra_tp=' . urlencode($type);
+        }
+        if ($category) {
+            $url .= '&cra_ct=' . urlencode($category);
+        }
+        if ($stack) {
+            $url .= '&cra_st=' . urlencode($stack);
+        }
+        if ($location) {
+            $url .= '&cra_ru=' . urlencode($location);
+        }
+        if ($line) {
+            $url .= '&cra_rl=' . urlencode($line);
+        }
+        if ($column) {
+            $url .= '&cra_rc=' . urlencode($column);
+        }
 
         return $url;
     }
