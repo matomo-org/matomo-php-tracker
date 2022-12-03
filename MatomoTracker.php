@@ -614,6 +614,16 @@ class MatomoTracker
     }
 
     /**
+     * Disables the bulk request feature. Make sure to call `doBulkTrack()` before disabling it if you have stored  
+     * tracking actions previously as this method won't be sending any previously stored actions before disabling it.
+     *
+     */
+    public function disableBulkTracking()
+    {
+        $this->doBulkRequests = false;
+    }
+
+    /**
      * Enable Cookie Creation - this will cause a first party VisitorId cookie to be set when the VisitorId is set or reset
      *
      * @param string $domain (optional) Set first-party cookie domain.
