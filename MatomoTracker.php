@@ -19,6 +19,7 @@
  * @package MatomoTracker
  * @api
  */
+#[AllowDynamicProperties]
 class MatomoTracker
 {
     /**
