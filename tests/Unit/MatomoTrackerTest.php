@@ -76,7 +76,7 @@ class MatomoTrackerTest extends TestCase
     {
         $newApiUrl = 'https://NEW-API-URL.com';
         $tracker = new \MatomoTracker(1, self::TEST_URL);
-        $tracker->setApiUrl('https://NEW-API-URL.com');
+        $tracker->setApiUrl($newApiUrl);
         $url = $tracker->getUrlTrackPageView('test title');
 
         $this->assertSame(substr($url, 0, strlen($newApiUrl)), $newApiUrl);
