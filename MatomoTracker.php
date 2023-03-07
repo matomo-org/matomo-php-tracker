@@ -172,6 +172,11 @@ class MatomoTracker
         $this->incomingTrackerCookies = [];
     }
 
+    public function setApiUrl(string $url)
+    {
+        self::$URL = $url;
+    }
+
     /**
      * By default, Matomo expects utf-8 encoded values, for example
      * for the page URL parameter values, Page Title, etc.
