@@ -71,4 +71,14 @@ class MatomoTrackerTest extends TestCase
         $expected = 'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&_idts=1583298245&_id=b446c233274f79f0&url=http%3A%2F%2Fsomesite.com&urlref=&action_name=test+title';
         $this->assertEquals($expected, $url);
     }
+
+    public function test_setApiUrl()
+    {
+        $newApiUrl = 'https://NEW-API-URL.com';
+        $tracker = new \MatomoTracker(1, self::TEST_URL);
+        $tracker->setApiUrl('https://NEW-API-URL.com');
+        $url = $tracker->getUrlTrackPageView('test title');
+
+        $this->assertSame(substr($url, 0, strlen($newApiUrl)), $newApiUrl);
+    }
 }
