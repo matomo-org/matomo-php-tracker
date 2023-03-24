@@ -161,6 +161,7 @@ class MatomoTracker
 
         // Allow debug while blocking the request
         $this->requestTimeout = 600;
+        $this->requestConnectTimeout = 300;
         $this->doBulkRequests = false;
         $this->storedTrackingActions = [];
 
@@ -1697,6 +1698,32 @@ didn't change any existing VisitorId value */
         return $this;
     }
 	
+    /**
+     * Returns the maximum number of seconds the tracker will spend trying to connect to Matomo.
+     * Defaults to 300 seconds.
+     */
+    public function getRequestConnectTimeout()
+    {
+        return $this->requestConnectTimeout;
+    }
+
+    /**
+     * Sets the maximum number of seconds that the tracker will spend tryint to connect to Matomo.
+     *
+     * @param int $timeout
+     * @return $this
+     * @throws Exception
+     */
+    public function setRequestConnectTimeout($timeout)
+    {
+        if (!is_int($timeout) || $timeout < 0) {
+            throw new Exception("Invalid value supplied for request connect timeout: $timeout");
+        }
+
+        $this->requestConnectTimeout = $timeout;
+        return $this;
+    }
+
 	/**
      * Sets the request method to POST, which is recommended when using setTokenAuth()
      * to prevent the token from being recorded in server logs. Avoid using redirects
@@ -1752,6 +1779,7 @@ didn't change any existing VisitorId value */
             CURLOPT_USERAGENT => $this->userAgent,
             CURLOPT_HEADER => true,
             CURLOPT_TIMEOUT => $this->requestTimeout,
+            CURLOPT_CONNECTTIMEOUT => $this->requestConnectTimeout,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => array(
                 'Accept-Language: ' . $this->acceptLanguage,
