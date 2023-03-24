@@ -1,5 +1,5 @@
 {
-    "name": "matomo/matomo-php-tracker",
+    "name": "vpapaloukas/matomo-php-tracker",
     "description": "PHP Client for Matomo Analytics Tracking API",
     "keywords": ["matomo","piwik","tracker","analytics"],
     "homepage": "https://matomo.org",
