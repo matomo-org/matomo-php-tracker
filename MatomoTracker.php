@@ -161,6 +161,7 @@ class MatomoTracker
 
         // Allow debug while blocking the request
         $this->requestTimeout = 600;
+        $this->requestConnectTimeout = 0;
         $this->doBulkRequests = false;
         $this->storedTrackingActions = [];
 
@@ -620,7 +621,7 @@ class MatomoTracker
     }
 
     /**
-     * Disables the bulk request feature. Make sure to call `doBulkTrack()` before disabling it if you have stored  
+     * Disables the bulk request feature. Make sure to call `doBulkTrack()` before disabling it if you have stored
      * tracking actions previously as this method won't be sending any previously stored actions before disabling it.
      *
      */
@@ -1696,7 +1697,33 @@ didn't change any existing VisitorId value */
         $this->requestTimeout = $timeout;
         return $this;
     }
-	
+
+    /**
+     * Returns the maximum number of seconds the tracker will spend trying to connect to Matomo.
+     * Defaults to 0 seconds (unlimited).
+     */
+    public function getRequestConnectTimeout()
+    {
+        return $this->requestConnectTimeout;
+    }
+
+    /**
+     * Sets the maximum number of seconds that the tracker will spend tryint to connect to Matomo.
+     *
+     * @param int $timeout
+     * @return $this
+     * @throws Exception
+     */
+    public function setRequestConnectTimeout($timeout)
+    {
+        if (!is_int($timeout) || $timeout < 0) {
+            throw new Exception("Invalid value supplied for request connect timeout: $timeout");
+        }
+
+        $this->requestConnectTimeout = $timeout;
+        return $this;
+    }
+
 	/**
      * Sets the request method to POST, which is recommended when using setTokenAuth()
      * to prevent the token from being recorded in server logs. Avoid using redirects
@@ -1752,6 +1779,7 @@ didn't change any existing VisitorId value */
             CURLOPT_USERAGENT => $this->userAgent,
             CURLOPT_HEADER => true,
             CURLOPT_TIMEOUT => $this->requestTimeout,
+            CURLOPT_CONNECTTIMEOUT => $this->requestConnectTimeout,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => array(
                 'Accept-Language: ' . $this->acceptLanguage,
@@ -1902,7 +1930,7 @@ didn't change any existing VisitorId value */
             ob_start();
             $response = @curl_exec($ch);
             ob_end_clean();
-            
+
             $header = '';
             $content = '';
 
