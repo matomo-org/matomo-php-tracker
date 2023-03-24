@@ -1700,7 +1700,7 @@ didn't change any existing VisitorId value */
 	
     /**
      * Returns the maximum number of seconds the tracker will spend trying to connect to Matomo.
-     * Defaults to 0 seconds (unlimited).
+     * Defaults to 300 seconds.
      */
     public function getRequestConnectTimeout()
     {
