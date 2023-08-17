@@ -19,7 +19,6 @@
  * @package MatomoTracker
  * @api
  */
-#[AllowDynamicProperties]
 class MatomoTracker
 {
     /**
@@ -34,44 +33,388 @@ class MatomoTracker
     /**
      * API Version
      *
-     * @ignore
      * @var int
      */
     const VERSION = 1;
 
     /**
-     * @ignore
+     * @var string
      */
     public $DEBUG_APPEND_URL = '';
 
     /**
      * Visitor ID length
      *
-     * @ignore
+     * @var int
      */
     const LENGTH_VISITOR_ID = 16;
 
     /**
      * Charset
+     *
      * @see setPageCharset
-     * @ignore
+     * @var string
      */
     const DEFAULT_CHARSET_PARAMETER_VALUES = 'utf-8';
 
     /**
      * See matomo.js
+     *
+     * @var string
      */
     const FIRST_PARTY_COOKIES_PREFIX = '_pk_';
 
     /**
      * Defines how many categories can be used max when calling addEcommerceItem().
+     *
      * @var int
      */
     const MAX_NUM_ECOMMERCE_ITEM_CATEGORIES = 5;
 
+    /**
+     * Default cookie domain path
+     *
+     * @var string
+     */
     const DEFAULT_COOKIE_PATH = '/';
 
+    /**
+     * Request method
+     *
+     * @var ?string
+     */
     private $requestMethod = null;
+
+    /**
+     * @var array
+     */
+    public $ecommerceItems = [];
+
+    /**
+     * @var array
+     */
+    public $attributionInfo = [];
+
+    /**
+     * @var array
+     */
+    public $eventCustomVar = [];
+
+    /**
+     * @var string
+     */
+    public $forcedDatetime = '';
+
+    /**
+     * @var bool
+     */
+    public $forcedNewVisit = false;
+
+    /**
+     * @var int|false
+     */
+    public $networkTime = false;
+
+    /**
+     * @var int|false
+     */
+    public $serverTime = false;
+
+    /**
+     * @var int|false
+     */
+    public $transferTime = false;
+
+    /**
+     * @var int|false
+     */
+    public $domProcessingTime = false;
+
+    /**
+     * @var int|false
+     */
+    public $domCompletionTime = false;
+
+    /**
+     * @var int|false
+     */
+    public $onLoadTime = false;
+
+    /**
+     * @var array
+     */
+    public $pageCustomVar = [];
+
+    /**
+     * @var array
+     */
+    public $ecommerceView = [];
+
+    /**
+     * @var array
+     */
+    public $customParameters = [];
+
+    /**
+     * @var array
+     */
+    public $customDimensions = [];
+
+    /**
+     * @var bool
+     */
+    public $customData = false;
+
+    /**
+     * @var bool
+     */
+    public $hasCookies = false;
+
+    /**
+     * @var string
+     */
+    public $token_auth = '';
+
+    /**
+     * @var string|false
+     */
+    public $userAgent = false;
+
+    /**
+     * @var string
+     */
+    public $country = '';
+
+    /**
+     * @var string
+     */
+    public $region = '';
+
+    /**
+     * @var string
+     */
+    public $city = '';
+    
+    /**
+     * @var string
+     */
+    public $lat = '';
+    
+    /**
+     * @var string
+     */
+    public $long = '';
+    
+    /**
+     * @var string
+     */
+    public $width = '';
+    
+    /**
+     * @var string
+     */
+    public $height = '';
+    
+    /**
+     * @var string
+     */
+    public $plugins = '';
+    
+    /**
+     * @var int|false
+     */
+    public $localHour = false;
+    
+    /**
+     * @var int|false
+     */
+    public $localMinute = false;
+    
+    /**
+     * @var int|false
+     */
+    public $localSecond = false;
+    
+    /**
+     * @var string
+     */
+    public $idPageview = '';
+
+    /**
+     * Id site to be tracked
+     *
+     * @var int
+     */
+    public $idSite = 0;
+
+    /**
+     * @var string|null
+     */
+    public $urlReferrer = null;
+
+    /**
+     * @var string
+     */
+    public $pageCharset = '';
+
+    /**
+     * @var string|null
+     */
+    public $pageUrl = null;
+
+    /**
+     * @var string|false
+     */
+    public $ip = false;
+
+    /**
+     * @var string|false
+     */
+    public $acceptLanguage = false;
+
+    /**
+     * @var array
+     */
+    public $clientHints = [];
+
+    /**
+     * Life of the visitor cookie (in sec)
+     *
+     * @var int
+     */
+    public $configVisitorCookieTimeout = 33955200; // 13 months (365 + 28 days)
+
+    /**
+     * Life of the session cookie (in sec)
+     *
+     * @var int
+     */
+    public $configSessionCookieTimeout = 1800; // 30 minutes
+
+    /**
+     * Life of the session cookie (in sec)
+     *
+     * @var int
+     */
+    public $configReferralCookieTimeout = 15768000; // 6 months
+
+    /**
+     * @var string|false
+     */
+    public $userId = false;
+
+    /**
+     * @var string|false
+     */
+    public $forcedVisitorId = false;
+
+    /**
+     * @var string|false
+     */
+    public $cookieVisitorId = false;
+
+    /**
+     * @var string|false
+     */
+    public $randomVisitorId = false;
+
+    /**
+     * @var bool
+     */
+    public $configCookiesDisabled = false;
+
+    /**
+     * @var string
+     */
+    public $configCookiePath = self::DEFAULT_COOKIE_PATH;
+
+    /**
+     * @var string
+     */
+    public $configCookieDomain = '';
+
+    /**
+     * @var string
+     */
+    public $configCookieSameSite = '';
+
+    /**
+     * @var bool
+     */
+    public $configCookieSecure = false;
+
+    /**
+     * @var bool
+     */
+    public $configCookieHTTPOnly = false;
+
+    /**
+     * @var ?int
+     */
+    public $currentTs = null;
+
+    /**
+     * @var ?int
+     */
+    public $createTs = null;
+
+    /**
+     * @var int
+     */
+    public $requestTimeout = 600;
+
+    /**
+     * @var int
+     */
+    public $requestConnectTimeout = 300;
+
+    /**
+     * @var bool
+     */
+    public $doBulkRequests = false;
+
+    /**
+     * @var array
+     */
+    public $storedTrackingActions = [];
+
+    /**
+     * @var bool
+     */
+    public $sendImageResponse = true;
+
+    /**
+     * @var array
+     */
+    public $visitorCustomVar = [];
+
+    /**
+     * @var array
+     */
+    public $outgoingTrackerCookies = [];
+
+    /**
+     * @var array
+     */
+    public $incomingTrackerCookies = [];
+
+    /**
+     * @var string
+     */
+    public $proxy = '';
+
+    /**
+     * @var int
+     */
+    public $proxyPort = 80;
+
+    /**
+     * Used in tests to output useful error messages.
+     *
+     * @ignore
+     * @var string|false
+     */
+    static public $DEBUG_LAST_REQUESTED_URL = false;
 
     /**
      * Builds a MatomoTracker object, used to track visits, pages and Goal conversions
@@ -83,46 +426,13 @@ class MatomoTracker
      */
     public function __construct($idSite, $apiUrl = '')
     {
-        $this->ecommerceItems = [];
-        $this->attributionInfo = false;
-        $this->eventCustomVar = [];
-        $this->forcedDatetime = false;
-        $this->forcedNewVisit = false;
-        $this->networkTime = false;
-        $this->serverTime = false;
-        $this->transferTime = false;
-        $this->domProcessingTime = false;
-        $this->domCompletionTime = false;
-        $this->onLoadTime = false;
-        $this->pageCustomVar = [];
-        $this->ecommerceView = [];
-        $this->customParameters = [];
-        $this->customDimensions = [];
-        $this->customData = false;
-        $this->hasCookies = false;
-        $this->token_auth = false;
-        $this->userAgent = false;
-        $this->country = false;
-        $this->region = false;
-        $this->city = false;
-        $this->lat = false;
-        $this->long = false;
-        $this->width = false;
-        $this->height = false;
-        $this->plugins = false;
-        $this->localHour = false;
-        $this->localMinute = false;
-        $this->localSecond = false;
-        $this->idPageview = false;
-
         $this->idSite = $idSite;
-        $this->urlReferrer = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
+        $this->urlReferrer = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null;
         $this->pageCharset = self::DEFAULT_CHARSET_PARAMETER_VALUES;
         $this->pageUrl = self::getCurrentUrl();
         $this->ip = !empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
         $this->acceptLanguage = !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : false;
         $this->userAgent = !empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : false;
-        $this->clientHints = [];
         $this->setClientHints(
             !empty($_SERVER['HTTP_SEC_CH_UA_MODEL']) ? $_SERVER['HTTP_SEC_CH_UA_MODEL'] : '',
             !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] : '',
@@ -134,45 +444,18 @@ class MatomoTracker
             self::$URL = $apiUrl;
         }
 
-        // Life of the visitor cookie (in sec)
-        $this->configVisitorCookieTimeout = 33955200; // 13 months (365 + 28 days)
-        // Life of the session cookie (in sec)
-        $this->configSessionCookieTimeout = 1800; // 30 minutes
-        // Life of the session cookie (in sec)
-        $this->configReferralCookieTimeout = 15768000; // 6 months
-
-        // Visitor Ids in order
-        $this->userId = false;
-        $this->forcedVisitorId = false;
-        $this->cookieVisitorId = false;
-        $this->randomVisitorId = false;
-
         $this->setNewVisitorId();
-
-        $this->configCookiesDisabled = false;
-        $this->configCookiePath = self::DEFAULT_COOKIE_PATH;
-        $this->configCookieDomain = '';
-        $this->configCookieSameSite = '';
-        $this->configCookieSecure = false;
-        $this->configCookieHTTPOnly = false;
 
         $this->currentTs = time();
         $this->createTs = $this->currentTs;
 
-        // Allow debug while blocking the request
-        $this->requestTimeout = 600;
-        $this->requestConnectTimeout = 300;
-        $this->doBulkRequests = false;
-        $this->storedTrackingActions = [];
-
-        $this->sendImageResponse = true;
-
         $this->visitorCustomVar = $this->getCustomVariablesFromCookie();
-
-        $this->outgoingTrackerCookies = [];
-        $this->incomingTrackerCookies = [];
     }
 
+    /**
+     * @param string $url
+     * @return void
+     */
     public function setApiUrl(string $url)
     {
         self::$URL = $url;
@@ -235,15 +518,15 @@ class MatomoTracker
      * Sets timings for various browser performance metrics.
      * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceTiming
      *
-     * @param null|int $network Network time in ms (connectEnd – fetchStart)
-     * @param null|int $server Server time in ms (responseStart – requestStart)
-     * @param null|int $transfer Transfer time in ms (responseEnd – responseStart)
-     * @param null|int $domProcessing DOM Processing to Interactive time in ms (domInteractive – domLoading)
-     * @param null|int $domCompletion DOM Interactive to Complete time in ms (domComplete – domInteractive)
-     * @param null|int $onload Onload time in ms (loadEventEnd – loadEventStart)
+     * @param int|false $network Network time in ms (connectEnd – fetchStart)
+     * @param int|false $server Server time in ms (responseStart – requestStart)
+     * @param int|false $transfer Transfer time in ms (responseEnd – responseStart)
+     * @param int|false $domProcessing DOM Processing to Interactive time in ms (domInteractive – domLoading)
+     * @param int|false $domCompletion DOM Interactive to Complete time in ms (domComplete – domInteractive)
+     * @param int|false $onload Onload time in ms (loadEventEnd – loadEventStart)
      * @return $this
      */
-    public function setPerformanceTimings($network = null, $server = null, $transfer = null, $domProcessing = null, $domCompletion = null, $onload = null)
+    public function setPerformanceTimings($network = false, $server = false, $transfer = false, $domProcessing = false, $domCompletion = false, $onload = false)
     {
         $this->networkTime = $network;
         $this->serverTime = $server;
@@ -256,6 +539,7 @@ class MatomoTracker
 
     /**
      * Clear / reset all previously set performance metrics.
+     * @return void
      */
     public function clearPerformanceTimings()
     {
@@ -270,6 +554,8 @@ class MatomoTracker
     /**
      * @deprecated
      * @ignore
+     * @param string $url Raw URL (not URL encoded)
+     * @return $this
      */
     public function setUrlReferer($url)
     {
@@ -377,6 +663,7 @@ class MatomoTracker
      *
      * This can be useful when you have enabled bulk requests,
      * and you wish to clear Custom Variables of 'visit' scope.
+     * @return void
      */
     public function clearCustomVariables()
     {
@@ -394,12 +681,13 @@ class MatomoTracker
      */
     public function setCustomDimension($id, $value)
     {
-        $this->customDimensions['dimension'.(int)$id] = $value;
+        $this->customDimensions['dimension'.$id] = $value;
         return $this;
     }
 
     /**
      * Clears all previously set custom dimensions
+     * @return void
      */
     public function clearCustomDimensions()
     {
@@ -414,7 +702,7 @@ class MatomoTracker
      */
     public function getCustomDimension($id)
     {
-        return $this->customDimensions['dimension'.(int)$id] ?? null;
+        return $this->customDimensions['dimension'.$id] ?? null;
     }
 
     /**
@@ -432,7 +720,7 @@ class MatomoTracker
         $matches = [];
 
         if (preg_match('/^dimension([0-9]+)$/', $trackingApiParameter, $matches)) {
-            $this->setCustomDimension($matches[1], $value);
+            $this->setCustomDimension(intval($matches[1]), $value);
             return $this;
         }
 
@@ -442,6 +730,7 @@ class MatomoTracker
 
     /**
      * Clear / reset all previously set custom tracking parameters.
+     * @return void
      */
     public function clearCustomTrackingParameters()
     {
@@ -450,14 +739,13 @@ class MatomoTracker
 
     /**
      * Sets the current visitor ID to a random new one.
-     * @return $this
+     * @return void
      */
     public function setNewVisitorId()
     {
-        $this->randomVisitorId = substr(md5(uniqid(rand(), true)), 0, self::LENGTH_VISITOR_ID);
+        $this->randomVisitorId = substr(md5(uniqid(strval(rand()), true)), 0, self::LENGTH_VISITOR_ID);
         $this->forcedVisitorId = false;
         $this->cookieVisitorId = false;
-        return $this;
     }
 
     /**
@@ -511,7 +799,7 @@ class MatomoTracker
      *                                      [['brand' => 'Chrome', 'version' => '10.0.2'], ['brand' => '...]
      * @param string $uaFullVersion  Value of the header 'HTTP_SEC_CH_UA_FULL_VERSION'
      *
-     * @return $this
+     * @return void
      */
     public function setClientHints($model = '', $platform = '', $platformVersion = '', $fullVersionList = '', $uaFullVersion = '')
     {
@@ -536,8 +824,6 @@ class MatomoTracker
             'uaFullVersion' => $uaFullVersion,
             'fullVersionList' => $fullVersionList,
         ]);
-
-        return $this;
     }
 
     /**
@@ -587,7 +873,7 @@ class MatomoTracker
      * latitude using the visitor's IP address (if configured to do so).
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
-     * @param float $lat
+     * @param string $lat
      * @return $this
      */
     public function setLatitude($lat)
@@ -601,7 +887,7 @@ class MatomoTracker
      * longitude using the visitor's IP address (if configured to do so).
      *
      * Allowed only for Admin/Super User, must be used along with setTokenAuth().
-     * @param float $long
+     * @param string $long
      * @return $this
      */
     public function setLongitude($long)
@@ -614,6 +900,7 @@ class MatomoTracker
      * Enables the bulk request feature. When used, each tracking action is stored until the
      * doBulkTrack method is called. This method will send all tracking data at once.
      *
+     * @return void
      */
     public function enableBulkTracking()
     {
@@ -624,6 +911,7 @@ class MatomoTracker
      * Disables the bulk request feature. Make sure to call `doBulkTrack()` before disabling it if you have stored  
      * tracking actions previously as this method won't be sending any previously stored actions before disabling it.
      *
+     * @return void
      */
     public function disableBulkTracking()
     {
@@ -639,6 +927,7 @@ class MatomoTracker
      * @param bool $secure (optional) Set secure flag for cookies
      * @param bool $httpOnly (optional) Set HTTPOnly flag for cookies
      * @param string $sameSite (optional) Set SameSite flag for cookies
+     * @return void
      */
     public function enableCookies($domain = '', $path = '/', $secure = false, $httpOnly = false, $sameSite = '')
     {
@@ -652,6 +941,7 @@ class MatomoTracker
 
     /**
      * If image response is disabled Matomo will respond with a HTTP 204 header instead of responding with a gif.
+     * @return void
      */
     public function disableSendImageResponse()
     {
@@ -660,6 +950,8 @@ class MatomoTracker
 
     /**
      * Fix-up domain
+     * @param string $domain
+     * @return string
      */
     protected static function domainFixup($domain)
     {
@@ -712,9 +1004,12 @@ class MatomoTracker
         return $this->sendRequest($url);
     }
 
+    /**
+     * @return void
+     */
     private function generateNewPageviewId()
     {
-        $this->idPageview = substr(md5(uniqid(rand(), true)), 0, 6);
+        $this->idPageview = substr(md5(uniqid(strval(rand()), true)), 0, 6);
     }
 
     /**
@@ -722,8 +1017,8 @@ class MatomoTracker
      *
      * @param string $category The Event Category (Videos, Music, Games...)
      * @param string $action The Event's Action (Play, Pause, Duration, Add Playlist, Downloaded, Clicked...)
-     * @param string|bool $name (optional) The Event's object Name (a particular Movie name, or Song name, or File name...)
-     * @param float|bool $value (optional) The Event's value
+     * @param string|false $name (optional) The Event's object Name (a particular Movie name, or Song name, or File name...)
+     * @param float|false $value (optional) The Event's value
      * @return mixed Response string or true if using bulk requests.
      */
     public function doTrackEvent($category, $action, $name = false, $value = false)
@@ -738,7 +1033,7 @@ class MatomoTracker
      *
      * @param string $contentName The name of the content. For instance 'Ad Foo Bar'
      * @param string $contentPiece The actual content. For instance the path to an image, video, audio, any text
-     * @param string|bool $contentTarget (optional) The target of the content. For instance the URL of a landing page.
+     * @param string|false $contentTarget (optional) The target of the content. For instance the URL of a landing page.
      * @return mixed Response string or true if using bulk requests.
      */
     public function doTrackContentImpression($contentName, $contentPiece = 'Unknown', $contentTarget = false)
@@ -755,7 +1050,7 @@ class MatomoTracker
      * @param string $interaction The name of the interaction with the content. For instance a 'click'
      * @param string $contentName The name of the content. For instance 'Ad Foo Bar'
      * @param string $contentPiece The actual content. For instance the path to an image, video, audio, any text
-     * @param string|bool $contentTarget (optional) The target the content leading to when an interaction occurs. For instance the URL of a landing page.
+     * @param string|false $contentTarget (optional) The target the content leading to when an interaction occurs. For instance the URL of a landing page.
      * @return mixed Response string or true if using bulk requests.
      */
     public function doTrackContentInteraction(
@@ -763,8 +1058,7 @@ class MatomoTracker
         $contentName,
         $contentPiece = 'Unknown',
         $contentTarget = false
-    )
-    {
+    ) {
         $url = $this->getUrlTrackContentInteraction($interaction, $contentName, $contentPiece, $contentTarget);
 
         return $this->sendRequest($url);
@@ -776,7 +1070,7 @@ class MatomoTracker
      *
      * @param string $keyword Searched query on the site
      * @param string $category (optional) Search engine category if applicable
-     * @param bool|int $countResults (optional) results displayed on the search result page. Used to track "zero result" keywords.
+     * @param int|false $countResults (optional) results displayed on the search result page. Used to track "zero result" keywords.
      *
      * @return mixed Response or true if using bulk requests.
      */
@@ -867,7 +1161,7 @@ class MatomoTracker
      * To enable bulk tracking, call enableBulkTracking().
      *
      * @throws Exception
-     * @return string Response
+     * @return mixed
      */
     public function doBulkTrack()
     {
@@ -886,6 +1180,9 @@ class MatomoTracker
         }
 
         $postData = json_encode($data);
+	if($postData === false)
+		$postData = '';
+
         $response = $this->sendRequest($this->getBaseUrl(), 'POST', $postData, $force = true);
 
         $this->storedTrackingActions = array();
@@ -917,8 +1214,7 @@ class MatomoTracker
         $tax = 0.0,
         $shipping = 0.0,
         $discount = 0.0
-    )
-    {
+    ) {
         $url = $this->getUrlTrackEcommerceOrder($orderId, $grandTotal, $subTotal, $tax, $shipping, $discount);
 
         return $this->sendRequest($url);
@@ -1036,7 +1332,7 @@ class MatomoTracker
      * Force the separator for decimal point to be a dot. See https://github.com/matomo-org/matomo/issues/6435
      * If for instance a German locale is used it would be a comma otherwise.
      *
-     * @param  float|string $value
+     * @param float|string $value
      * @return string
      */
     private function forceDotAsSeparatorForDecimalPoint($value)
@@ -1045,7 +1341,7 @@ class MatomoTracker
             return $value;
         }
 
-        return str_replace(',', '.', $value);
+        return str_replace(',', '.', strval($value));
     }
 
     /**
@@ -1053,6 +1349,8 @@ class MatomoTracker
      * Calling this function will reinitializes the property ecommerceItems to empty array
      * so items will have to be added again via addEcommerceItem()
      * @ignore
+     * @param float $grandTotal Cart grandTotal (typically the sum of all items' prices)
+     * @return string
      */
     public function getUrlTrackEcommerceCartUpdate($grandTotal)
     {
@@ -1066,6 +1364,13 @@ class MatomoTracker
      * Calling this function will reinitializes the property ecommerceItems to empty array
      * so items will have to be added again via addEcommerceItem()
      * @ignore
+     * @param string|int $orderId (required) Unique Order ID.
+     * @param float $grandTotal (required) Grand Total revenue of the transaction (including tax, shipping, etc.)
+     * @param float $subTotal (optional) Sub total amount, typically the sum of items prices for all items in this order (before Tax and Shipping costs are applied)
+     * @param float $tax (optional) Tax amount for this order
+     * @param float $shipping (optional) Shipping amount for this order
+     * @param float $discount (optional) Discounted amount in this order
+     * @return string
      */
     public function getUrlTrackEcommerceOrder(
         $orderId,
@@ -1074,13 +1379,12 @@ class MatomoTracker
         $tax = 0.0,
         $shipping = 0.0,
         $discount = 0.0
-    )
-    {
+    ) {
         if (empty($orderId)) {
             throw new Exception("You must specifiy an orderId for the Ecommerce order");
         }
         $url = $this->getUrlTrackEcommerce($grandTotal, $subTotal, $tax, $shipping, $discount);
-        $url .= '&ec_id=' . urlencode($orderId);
+        $url .= '&ec_id=' . urlencode(strval($orderId));
 
         return $url;
     }
@@ -1092,9 +1396,20 @@ class MatomoTracker
      * so items will have to be added again via addEcommerceItem()
      *
      * @ignore
+     * @param float $grandTotal (required) Grand Total revenue of the transaction (including tax, shipping, etc.)
+     * @param float $subTotal (optional) Sub total amount, typically the sum of items prices for all items in this order (before Tax and Shipping costs are applied)
+     * @param float $tax (optional) Tax amount for this order
+     * @param float $shipping (optional) Shipping amount for this order
+     * @param float $discount (optional) Discounted amount in this order
+     * @return string
      */
-    protected function getUrlTrackEcommerce($grandTotal, $subTotal = 0.0, $tax = 0.0, $shipping = 0.0, $discount = 0.0)
-    {
+    protected function getUrlTrackEcommerce(
+        $grandTotal,
+        $subTotal = 0.0,
+        $tax = 0.0,
+        $shipping = 0.0,
+        $discount = 0.0
+    ) {
         if (!is_numeric($grandTotal)) {
             throw new Exception("You must specifiy a grandTotal for the Ecommerce order (or Cart update)");
         }
@@ -1122,7 +1437,7 @@ class MatomoTracker
             $url .= '&ec_dt=' . $discount;
         }
         if (!empty($this->ecommerceItems)) {
-            $url .= '&ec_items=' . urlencode(json_encode($this->ecommerceItems));
+            $url .= '&ec_items=' . urlencode(strval(json_encode($this->ecommerceItems)));
         }
         $this->ecommerceItems = array();
 
@@ -1152,10 +1467,10 @@ class MatomoTracker
      * @see doTrackEvent()
      * @param string $category The Event Category (Videos, Music, Games...)
      * @param string $action The Event's Action (Play, Pause, Duration, Add Playlist, Downloaded, Clicked...)
-     * @param string|bool $name (optional) The Event's object Name (a particular Movie name, or Song name, or File name...)
-     * @param float|bool $value (optional) The Event's value
+     * @param string|false $name (optional) The Event's object Name (a particular Movie name, or Song name, or File name...)
+     * @param float|false $value (optional) The Event's value
      * @return string URL to matomo.php with all parameters set to track the pageview
-     * @throws
+     * @throws Exception
      */
     public function getUrlTrackEvent($category, $action, $name = false, $value = false)
     {
@@ -1170,10 +1485,10 @@ class MatomoTracker
         $url .= '&e_c=' . urlencode($category);
         $url .= '&e_a=' . urlencode($action);
 
-        if (strlen($name) > 0) {
+        if($name !== false && strlen($name) > 0) {
             $url .= '&e_n=' . urlencode($name);
         }
-        if (strlen($value) > 0) {
+        if($value !== false && strlen(strval($value)) > 0) {
             $value = $this->forceDotAsSeparatorForDecimalPoint($value);
             $url .= '&e_v=' . $value;
         }
@@ -1191,7 +1506,7 @@ class MatomoTracker
      * @throws Exception In case $contentName is empty
      * @return string URL to matomo.php with all parameters set to track the pageview
      */
-    public function getUrlTrackContentImpression($contentName, $contentPiece, $contentTarget)
+    public function getUrlTrackContentImpression($contentName, $contentPiece, $contentTarget = false)
     {
         $url = $this->getRequest($this->idSite);
 
@@ -1204,7 +1519,7 @@ class MatomoTracker
         if (!empty($contentPiece) && strlen($contentPiece) > 0) {
             $url .= '&c_p=' . urlencode($contentPiece);
         }
-        if (!empty($contentTarget) && strlen($contentTarget) > 0) {
+        if ($contentTarget !== false && strlen($contentTarget) > 0) {
             $url .= '&c_t=' . urlencode($contentTarget);
         }
 
@@ -1222,7 +1537,7 @@ class MatomoTracker
      * @throws Exception In case $interaction or $contentName is empty
      * @return string URL to matomo.php with all parameters set to track the pageview
      */
-    public function getUrlTrackContentInteraction($interaction, $contentName, $contentPiece, $contentTarget)
+    public function getUrlTrackContentInteraction($interaction, $contentName, $contentPiece, $contentTarget = false)
     {
         $url = $this->getRequest($this->idSite);
 
@@ -1240,7 +1555,7 @@ class MatomoTracker
         if (!empty($contentPiece) && strlen($contentPiece) > 0) {
             $url .= '&c_p=' . urlencode($contentPiece);
         }
-        if (!empty($contentTarget) && strlen($contentTarget) > 0) {
+        if ($contentTarget !== false && strlen($contentTarget) > 0) {
             $url .= '&c_t=' . urlencode($contentTarget);
         }
 
@@ -1253,17 +1568,17 @@ class MatomoTracker
      * @see doTrackSiteSearch()
      * @param string $keyword
      * @param string $category
-     * @param int $countResults
+     * @param int|false $countResults
      * @return string
      */
-    public function getUrlTrackSiteSearch($keyword, $category, $countResults)
+    public function getUrlTrackSiteSearch($keyword, $category, $countResults = false)
     {
         $url = $this->getRequest($this->idSite);
         $url .= '&search=' . urlencode($keyword);
         if (strlen($category) > 0) {
             $url .= '&search_cat=' . urlencode($category);
         }
-        if (!empty($countResults) || $countResults === 0) {
+        if ($countResults !== false) {
             $url .= '&search_count=' . (int)$countResults;
         }
 
@@ -1320,28 +1635,34 @@ class MatomoTracker
      * @param int|null $column (optional) the source file column where the crash originated.
      * @return string URL to matomo.php with all parameters set to track an action
      */
-    public function getUrlTrackCrash($message, $type = null, $category = null, $stack = null, $location = null, $line = null, $column = null)
-    {
+    public function getUrlTrackCrash(
+        $message,
+        $type = null,
+        $category = null,
+        $stack = null,
+        $location = null,
+        $line = null,
+        $column = null
+    ) {
         $url = $this->getRequest($this->idSite);
         $url .= '&ca=1&cra=' . urlencode($message);
-        if ($type) {
+        if($type !== null)
             $url .= '&cra_tp=' . urlencode($type);
-        }
-        if ($category) {
+
+        if($category !== null)
             $url .= '&cra_ct=' . urlencode($category);
-        }
-        if ($stack) {
+
+        if($stack !== null)
             $url .= '&cra_st=' . urlencode($stack);
-        }
-        if ($location) {
+
+        if($location !== null)
             $url .= '&cra_ru=' . urlencode($location);
-        }
-        if ($line) {
-            $url .= '&cra_rl=' . urlencode($line);
-        }
-        if ($column) {
-            $url .= '&cra_rc=' . urlencode($column);
-        }
+
+        if($line !== null)
+            $url .= '&cra_rl=' . urlencode(strval($line));
+
+        if($column !== null)
+            $url .= '&cra_rc=' . urlencode(strval($column));
 
         return $url;
     }
@@ -1395,7 +1716,7 @@ class MatomoTracker
      *
      * A User ID can be a username, UUID or an email address, or any number or string that uniquely identifies a user or client.
      *
-     * @param string $userId Any user ID string (eg. email address, ID, username). Must be non empty. Set to false to de-assign a user id previously set.
+     * @param string|false $userId Any user ID string (eg. email address, ID, username). Must be non empty. Set to false to de-assign a user id previously set.
      * @return $this
      * @throws Exception
      */
@@ -1413,12 +1734,12 @@ class MatomoTracker
      *
      * Note: matches implementation of Tracker\Request->getUserIdHashed()
      *
-     * @param $id
+     * @param string|int $id
      * @return string
      */
     public static function getUserIdHashed($id)
     {
-        return substr(sha1($id), 0, 16);
+        return substr(sha1(strval($id)), 0, 16);
     }
 
     /**
@@ -1465,14 +1786,13 @@ class MatomoTracker
      */
     public function getVisitorId()
     {
-        if (!empty($this->forcedVisitorId)) {
+        if($this->forcedVisitorId !== false)
             return $this->forcedVisitorId;
-        }
-        if ($this->loadVisitorIdCookie()) {
-            return $this->cookieVisitorId;
-        }
 
-        return $this->randomVisitorId;
+        if($this->loadVisitorIdCookie() && $this->cookieVisitorId !== false)
+            return $this->cookieVisitorId;
+
+        return strval($this->randomVisitorId);
     }
 
     /**
@@ -1481,7 +1801,10 @@ class MatomoTracker
      */
     public function getUserAgent()
     {
-        return $this->userAgent;
+        if($this->userAgent === false)
+                return '';
+        else
+                return $this->userAgent;
     }
 
     /**
@@ -1490,14 +1813,17 @@ class MatomoTracker
      */
     public function getIp()
     {
-        return $this->ip;
+        if($this->ip === false)
+                return '';
+        else
+                return $this->ip;
     }
 
     /**
      * Returns the User ID string, which may have been set via:
      *     $v->setUserId('username@example.org');
      *
-     * @return bool
+     * @return string|false
      */
     public function getUserId()
     {
@@ -1523,13 +1849,14 @@ class MatomoTracker
         /* $this->cookieVisitorId provides backward compatibility since getVisitorId()
 didn't change any existing VisitorId value */
         $this->cookieVisitorId = $parts[0];
-        $this->createTs = $parts[1];
+        $this->createTs = intval($parts[1]);
 
         return true;
     }
 
     /**
      * Deletes all first party cookies from the client
+     * @return void
      */
     public function deleteCookies()
     {
@@ -1545,14 +1872,16 @@ didn't change any existing VisitorId value */
      * This function will only work if the user is initiating the current request, and his cookies
      * can be read by PHP from the $_COOKIE array.
      *
-     * @return string JSON Encoded string containing the Referrer information for Goal conversion attribution.
+     * @return string|false JSON Encoded string containing the Referrer information for Goal conversion attribution.
      *                Will return false if the cookie could not be found
      * @see matomo.js getAttributionInfo()
      */
     public function getAttributionInfo()
     {
-        if (!empty($this->attributionInfo)) {
-            return json_encode($this->attributionInfo);
+        if(!empty($this->attributionInfo)) {
+            $json = json_encode($this->attributionInfo);
+            if($json !== false)
+                return $json;
         }
 
         return $this->getCookieMatchingName('ref');
@@ -1599,8 +1928,8 @@ didn't change any existing VisitorId value */
      */
     public function setResolution($width, $height)
     {
-        $this->width = $width;
-        $this->height = $height;
+        $this->width = strval($width);
+        $this->height = strval($height);
         return $this;
     }
 
@@ -1648,8 +1977,7 @@ didn't change any existing VisitorId value */
         $pdf = false,
         $windowsMedia = false,
         $silverlight = false
-    )
-    {
+    ) {
         $this->plugins =
             '&fla=' . (int)$flash .
             '&java=' . (int)$java .
@@ -1665,6 +1993,7 @@ didn't change any existing VisitorId value */
      * By default, MatomoTracker will read first party cookies
      * from the request and write updated cookies in the response (using setrawcookie).
      * This can be disabled by calling this function.
+     * @return void
      */
     public function disableCookieSupport()
     {
@@ -1674,6 +2003,7 @@ didn't change any existing VisitorId value */
     /**
      * Returns the maximum number of seconds the tracker will spend waiting for a response
      * from Matomo. Defaults to 600 seconds.
+     * @return int
      */
     public function getRequestTimeout()
     {
@@ -1701,6 +2031,7 @@ didn't change any existing VisitorId value */
     /**
      * Returns the maximum number of seconds the tracker will spend trying to connect to Matomo.
      * Defaults to 300 seconds.
+     * @return int
      */
     public function getRequestConnectTimeout()
     {
@@ -1743,6 +2074,7 @@ didn't change any existing VisitorId value */
      * If a proxy is needed to look up the address of the Matomo site, set it with this
      * @param string $proxy IP as string, for example "173.234.92.107"
      * @param int $proxyPort
+     * @return void
      */
     public function setProxy($proxy, $proxyPort = 80)
     {
@@ -1753,24 +2085,23 @@ didn't change any existing VisitorId value */
     /**
      * If the proxy IP and the proxy port have been set, with the setProxy() function
      * returns a string, like "173.234.92.107:80"
+     * @return string|null
      */
     private function getProxy()
     {
-        if (isset($this->proxy) && isset($this->proxyPort)) {
+        if (!empty($this->proxy) && !empty($this->proxyPort)) {
             return $this->proxy.":".$this->proxyPort;
         }
         return null;
     }
 
     /**
-     * Used in tests to output useful error messages.
-     *
-     * @ignore
-     */
-    static public $DEBUG_LAST_REQUESTED_URL = false;
-
-    /**
      * Returns array of curl options for request
+     * @param string $url
+     * @param string $method
+     * @param string $data
+     * @param bool $forcePostUrlEncoded
+     * @return array
      */
     protected function prepareCurlOptions($url, $method, $data, $forcePostUrlEncoded)
     {
@@ -1795,7 +2126,7 @@ didn't change any existing VisitorId value */
         }
 
         $proxy = $this->getProxy();
-        if (isset($proxy)) {
+        if(!empty($proxy)) {
             $options[CURLOPT_PROXY] = $proxy;
         }
 
@@ -1832,6 +2163,10 @@ didn't change any existing VisitorId value */
 
     /**
      * Returns array of stream options for request
+     * @param string $method
+     * @param string $data
+     * @param bool $forcePostUrlEncoded
+     * @return array
      */
     protected function prepareStreamOptions($method, $data, $forcePostUrlEncoded)
     {
@@ -1845,7 +2180,7 @@ didn't change any existing VisitorId value */
         );
 
         $proxy = $this->getProxy();
-        if (isset($proxy)) {
+        if(!empty($proxy)) {
             $stream_options['http']['proxy'] = $proxy;
         }
 
@@ -1867,11 +2202,17 @@ didn't change any existing VisitorId value */
     }
 
     /**
+     * @param string $url
+     * @param string $method
+     * @param string $data
+     * @param bool $force
+     * @return mixed
      * @ignore
      */
-    protected function sendRequest($url, $method = 'GET', $data = null, $force = false)
+    protected function sendRequest($url, $method = 'GET', $data = '', $force = false)
     {
         self::$DEBUG_LAST_REQUESTED_URL = $url;
+        $content = '';
 
         // if doing a bulk request, store the url
         if ($this->doBulkRequests && !$force) {
@@ -1885,7 +2226,7 @@ didn't change any existing VisitorId value */
             $this->clearCustomDimensions();
             $this->clearCustomTrackingParameters();
             $this->userAgent = false;
-            $this->clientHints = false;
+            $this->clientHints = [];
             $this->acceptLanguage = false;
 
             return true;
@@ -1910,7 +2251,7 @@ didn't change any existing VisitorId value */
                 if (empty($this->requestMethod) || $method === 'POST') {
                     // Only post token_auth but use GET URL parameters for everything else
                     $forcePostUrlEncoded = true;
-                    if (empty($data)) {
+                    if($data === null || empty($data)) {
                         $data = '';
                     }
                     $data .= $appendTokenString;
@@ -1932,13 +2273,12 @@ didn't change any existing VisitorId value */
             ob_end_clean();
             
             $header = '';
-            $content = '';
 
             if ($response === false) {
                 throw new \RuntimeException(curl_error($ch));
             }
 
-            if (!empty($response)) {
+            if (is_string($response) && !empty($response)) {
                 // extract header
                 $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
                 $header = substr($response, 0, $headerSize);
@@ -1953,7 +2293,7 @@ didn't change any existing VisitorId value */
             $stream_options = $this->prepareStreamOptions($method, $data, $forcePostUrlEncoded);
 
             $ctx = stream_context_create($stream_options);
-            $response = file_get_contents($url, 0, $ctx);
+            $response = file_get_contents($url, false, $ctx);
             $content = $response;
 
             $this->parseIncomingCookies($http_response_header);
@@ -1964,7 +2304,7 @@ didn't change any existing VisitorId value */
 
     /**
      * Returns current timestamp, or forced timestamp/datetime if it was set
-     * @return string|int
+     * @return string|int|false
      */
     protected function getTimestamp()
     {
@@ -1975,6 +2315,7 @@ didn't change any existing VisitorId value */
 
     /**
      * Returns the base URL for the Matomo server.
+     * @return string
      */
     protected function getBaseUrl()
     {
@@ -1995,6 +2336,8 @@ didn't change any existing VisitorId value */
     }
 
     /**
+     * @param int $idSite
+     * @return string
      * @ignore
      */
     protected function getRequest($idSite)
@@ -2046,9 +2389,9 @@ didn't change any existing VisitorId value */
 
             // Various important attributes
             (!empty($this->customData) ? '&data=' . $this->customData : '') .
-            (!empty($this->visitorCustomVar) ? '&_cvar=' . urlencode(json_encode($this->visitorCustomVar)) : '') .
-            (!empty($this->pageCustomVar) ? '&cvar=' . urlencode(json_encode($this->pageCustomVar)) : '') .
-            (!empty($this->eventCustomVar) ? '&e_cvar=' . urlencode(json_encode($this->eventCustomVar)) : '') .
+            (!empty($this->visitorCustomVar) ? '&_cvar=' . urlencode(strval(json_encode($this->visitorCustomVar))) : '') .
+            (!empty($this->pageCustomVar) ? '&cvar=' . urlencode(strval(json_encode($this->pageCustomVar))) : '') .
+            (!empty($this->eventCustomVar) ? '&e_cvar=' . urlencode(strval(json_encode($this->eventCustomVar))) : '') .
             (!empty($this->forcedVisitorId) ? '&cid=' . $this->forcedVisitorId : '&_id=' . $this->getVisitorId()) .
 
             // URL parameters
@@ -2080,7 +2423,7 @@ didn't change any existing VisitorId value */
             (!$this->sendImageResponse ? '&send_image=0' : '') .
 
             // client hints
-            (!empty($this->clientHints) ? ('&uadata=' . urlencode(json_encode($this->clientHints))) : '') .
+            (!empty($this->clientHints) ? ('&uadata=' . urlencode(strval(json_encode($this->clientHints)))) : '') .
 
             // DEBUG
             $this->DEBUG_APPEND_URL;
@@ -2118,7 +2461,7 @@ didn't change any existing VisitorId value */
      * Returns a first party cookie which name contains $name
      *
      * @param string $name
-     * @return string String value of cookie, or false if not found
+     * @return string|false String value of cookie, or false if not found
      * @ignore
      */
     protected function getCookieMatchingName($name)
@@ -2261,7 +2604,7 @@ didn't change any existing VisitorId value */
 
         // Set the 'ref' cookie
         $attributionInfo = $this->getAttributionInfo();
-        if (!empty($attributionInfo)) {
+        if($attributionInfo !== false) {
             $this->setCookie('ref', $attributionInfo, $this->configReferralCookieTimeout);
         }
 
@@ -2282,9 +2625,9 @@ didn't change any existing VisitorId value */
      *
      * This replicates the matomo.js tracker algorithms for consistency and better accuracy.
      *
-     * @param $cookieName
-     * @param $cookieValue
-     * @param $cookieTTL
+     * @param string $cookieName
+     * @param mixed $cookieValue
+     * @param int $cookieTTL
      * @return $this
      */
     protected function setCookie($cookieName, $cookieValue, $cookieTTL)
@@ -2320,17 +2663,16 @@ didn't change any existing VisitorId value */
     /**
      * Sets a cookie to be sent to the tracking server.
      *
-     * @param $name
-     * @param $value
+     * @param string $name
+     * @param mixed $value
+     * @return void
      */
     public function setOutgoingTrackerCookie($name, $value)
     {
-        if ($value === null) {
+        if($value === null)
             unset($this->outgoingTrackerCookies[$name]);
-        }
-        else {
+        else
             $this->outgoingTrackerCookies[$name] = $value;
-        }
     }
 
     /**
@@ -2338,6 +2680,7 @@ didn't change any existing VisitorId value */
      *
      * @param $name
      *
+     * @param string $name
      * @return bool|string
      */
     public function getIncomingTrackerCookie($name)
@@ -2353,6 +2696,7 @@ didn't change any existing VisitorId value */
      * Reads incoming tracking server cookies.
      *
      * @param array $headers Array with HTTP response headers as values
+     * @return void
      */
     protected function parseIncomingCookies($headers)
     {
@@ -2380,7 +2724,7 @@ didn't change any existing VisitorId value */
 /**
  * Helper function to quickly generate the URL to track a page view.
  *
- * @param $idSite
+ * @param int $idSite
  * @param string $documentTitle
  * @return string
  */
@@ -2394,8 +2738,8 @@ function Matomo_getUrlTrackPageView($idSite, $documentTitle = '')
 /**
  * Helper function to quickly generate the URL to track a goal.
  *
- * @param $idSite
- * @param $idGoal
+ * @param int $idSite
+ * @param int $idGoal
  * @param float $revenue
  * @return string
  */
@@ -2411,6 +2755,10 @@ function Matomo_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
  *
  * @deprecated
  */
-if (!class_exists('\PiwikTracker')) {
+if(
+	!class_exists('\PiwikTracker') &&
+	is_file('PiwikTracker.php')
+) {
     include_once('PiwikTracker.php');
 }
+
