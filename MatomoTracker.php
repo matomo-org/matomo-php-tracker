@@ -2275,9 +2275,8 @@ didn't change any existing VisitorId value */
 
 			$header = '';
 
-			if ($response === false) {
-				throw new \RuntimeException(curl_error($ch));
-			}
+			if ($response === false)
+				return false;
 
 			if (is_string($response) && !empty($response)) {
 				// extract header
