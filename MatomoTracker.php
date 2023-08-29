@@ -22,13 +22,16 @@
 class MatomoTracker
 {
 	/**
-	 * Matomo base URL, for example http://example.org/matomo/
-	 * Must be set before using the class by calling
-	 * MatomoTracker::$URL = 'http://yourwebsite.org/matomo/';
+	 * Matomo base URL, for example http://example.tld/matomo/
+	 *
+	 * Must be set via the constructor:
+	 * 	$yourMatomoObject = new MatomoTracker(1, 'http://example.tld/matomo/');
+	 * or via the setApiURL function:
+	 * 	$yourMatomoObject->setApiUrl('http://example.tld/matomo/');
 	 *
 	 * @var string
 	 */
-	public static $URL = '';
+	public $URL = '';
 
 	/**
 	 * API Version
@@ -420,16 +423,15 @@ class MatomoTracker
 	 * Builds a MatomoTracker object, used to track visits, pages and Goal conversions
 	 * for a specific website, by using the Matomo Tracking API.
 	 *
-	 * @param int $idSite Id site to be tracked
-	 * @param string $apiUrl "http://example.org/matomo/" or "http://matomo.example.org/"
-	 *                         If set, will overwrite MatomoTracker::$URL
+	 * @param int $idSite Id Site to be tracked
+	 * @param string $apiUrl "http://example.org/matomo/" or "http://matomo.example.org/", if not set use the setApiUrl() function
 	 */
 	public function __construct($idSite, $apiUrl = '')
 	{
 		$this->idSite = $idSite;
 		$this->urlReferrer = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null;
 		$this->pageCharset = self::DEFAULT_CHARSET_PARAMETER_VALUES;
-		$this->pageUrl = self::getCurrentUrl();
+		$this->pageUrl = $this->getCurrentUrl();
 		$this->ip = !empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
 		$this->acceptLanguage = !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : false;
 		$this->userAgent = !empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : false;
@@ -441,7 +443,7 @@ class MatomoTracker
 			!empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION'] : ''
 		);
 		if (!empty($apiUrl)) {
-			self::$URL = $apiUrl;
+			$this->URL = $apiUrl;
 		}
 
 		$this->setNewVisitorId();
@@ -458,7 +460,7 @@ class MatomoTracker
 	 */
 	public function setApiUrl(string $url)
 	{
-		self::$URL = $url;
+		$this->URL = $url;
 	}
 
 	/**
@@ -933,7 +935,7 @@ class MatomoTracker
 	public function enableCookies($domain = '', $path = '/', $secure = false, $httpOnly = false, $sameSite = '')
 	{
 		$this->configCookiesDisabled = false;
-		$this->configCookieDomain = self::domainFixup($domain);
+		$this->configCookieDomain = $this->domainFixup($domain);
 		$this->configCookiePath = $path;
 		$this->configCookieSecure = $secure;
 		$this->configCookieHTTPOnly = $httpOnly;
@@ -954,7 +956,7 @@ class MatomoTracker
 	 * @param string $domain
 	 * @return string
 	 */
-	protected static function domainFixup($domain)
+	protected function domainFixup($domain)
 	{
 		if (strlen($domain) > 0) {
 			$dl = strlen($domain) - 1;
@@ -981,7 +983,7 @@ class MatomoTracker
 		// NOTE: If the cookie name is changed, we must also update the method in matomo.js with the same name.
 		$hash = substr(
 			sha1(
-				($this->configCookieDomain == '' ? self::getCurrentHost() : $this->configCookieDomain) . $this->configCookiePath
+				($this->configCookieDomain == '' ? $this->getCurrentHost() : $this->configCookieDomain) . $this->configCookiePath
 			),
 			0,
 			4
@@ -1737,7 +1739,7 @@ class MatomoTracker
 	 * @param string|int $id
 	 * @return string
 	 */
-	public static function getUserIdHashed($id)
+	public function getUserIdHashed($id)
 	{
 		return substr(sha1(strval($id)), 0, 16);
 	}
@@ -2319,18 +2321,18 @@ didn't change any existing VisitorId value */
 	 */
 	protected function getBaseUrl()
 	{
-		if (empty(self::$URL)) {
-			throw new Exception('You must first set the Matomo Tracker URL by calling MatomoTracker::$URL = \'http://your-website.org/matomo/\';');
-		}
+		if (empty($this->URL))
+			throw new Exception('You must set the Matomo Tracker URL, via the second parameter of the class constructor or via the setApiURL() function');
+
 		if (
-			strpos(self::$URL, '/matomo.php') === false
-			&& strpos(self::$URL, '/proxy-matomo.php') === false
+			strpos($this->URL, '/matomo.php') === false
+			&& strpos($this->URL, '/proxy-matomo.php') === false
 		) {
-			self::$URL = rtrim(self::$URL, '/');
-			self::$URL .= '/matomo.php';
+			$this->URL = rtrim($this->URL, '/');
+			$this->URL .= '/matomo.php';
 		}
 
-		return self::$URL;
+		return $this->URL;
 	}
 
 	/**
@@ -2491,7 +2493,7 @@ didn't change any existing VisitorId value */
 	 * @return string
 	 * @ignore
 	 */
-	protected static function getCurrentScriptName()
+	protected function getCurrentScriptName()
 	{
 		$url = '';
 		if (!empty($_SERVER['PATH_INFO'])) {
@@ -2525,7 +2527,7 @@ didn't change any existing VisitorId value */
 	 * @return string 'https' or 'http'
 	 * @ignore
 	 */
-	protected static function getCurrentScheme()
+	protected function getCurrentScheme()
 	{
 		if (
 			isset($_SERVER['HTTPS'])
@@ -2544,7 +2546,7 @@ didn't change any existing VisitorId value */
 	 * @return string
 	 * @ignore
 	 */
-	protected static function getCurrentHost()
+	protected function getCurrentHost()
 	{
 		if (isset($_SERVER['HTTP_HOST'])) {
 			return $_SERVER['HTTP_HOST'];
@@ -2560,7 +2562,7 @@ didn't change any existing VisitorId value */
 	 * @return string
 	 * @ignore
 	 */
-	protected static function getCurrentQueryString()
+	protected function getCurrentQueryString()
 	{
 		$url = '';
 		if (
@@ -2579,12 +2581,12 @@ didn't change any existing VisitorId value */
 	 * @return string
 	 * @ignore
 	 */
-	protected static function getCurrentUrl()
+	protected function getCurrentUrl()
 	{
-		return self::getCurrentScheme() . '://'
-		. self::getCurrentHost()
-		. self::getCurrentScriptName()
-		. self::getCurrentQueryString();
+		return $this->getCurrentScheme() . '://'
+		. $this->getCurrentHost()
+		. $this->getCurrentScriptName()
+		. $this->getCurrentQueryString();
 	}
 
 	/**
