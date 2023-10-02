@@ -1212,7 +1212,7 @@ class MatomoTracker
     }
 
     /**
-     * Builds URL to track a content impression.
+     * Builds URL to track a content interaction.
      *
      * @see doTrackContentInteraction()
      * @param string $interaction The name of the interaction with the content. For instance a 'click'
