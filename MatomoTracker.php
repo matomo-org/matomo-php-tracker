@@ -114,6 +114,7 @@ class MatomoTracker
         $this->localMinute = false;
         $this->localSecond = false;
         $this->idPageview = false;
+        $this->idPageviewSetManually = false;
 
         $this->idSite = $idSite;
         $this->urlReferrer = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
@@ -705,11 +706,37 @@ class MatomoTracker
      */
     public function doTrackPageView($documentTitle)
     {
-        $this->generateNewPageviewId();
+        if (!$this->idPageviewSetManually) {
+            $this->generateNewPageviewId();
+        }
 
         $url = $this->getUrlTrackPageView($documentTitle);
 
         return $this->sendRequest($url);
+    }
+			 
+    /**
+     * Override PageView id for every use of `doTrackPageView()`. Do not use this if you call `doTrackPageView()`
+     * multiple times during tracking (if, for example, you are tracking a single page application).
+     *
+     * @param string $idPageview
+     */
+    public function setPageviewId($idPageview)
+    {
+        $this->idPageview = $idPageview;
+        $this->idPageviewSetManually = true;
+    }
+
+    /**
+     * Returns the PageView id. If the id was manually set using `setPageViewId()`, that id will be returned.
+     * If the id was not set manually, the id that was automatically generated in last `doTrackPageView()` will
+     * be returned. If there was no last page view, this will be false.
+     * 
+     * @return mixed The PageView id as string or false if there is none yet.
+     */
+    public function getPageviewId()
+    {
+        return $this->idPageview;
     }
 
     private function generateNewPageviewId()
