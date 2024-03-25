@@ -1962,8 +1962,11 @@ didn't change any existing VisitorId value */
             $content = '';
 
             if ($response === false) {
-                throw new \RuntimeException(curl_error($ch));
-            }
+                $curlError = curl_error($ch);
+                if (!empty($curlError)) {
+                    throw new \RuntimeException($curlError);
+                }
+            }            
 
             if (!empty($response)) {
                 // extract header
