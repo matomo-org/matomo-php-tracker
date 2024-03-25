@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-cd tests && php ../vendor/bin/phpunit
+php vendor/bin/phpunit
