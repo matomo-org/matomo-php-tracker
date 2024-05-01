@@ -1949,6 +1949,8 @@ didn't change any existing VisitorId value */
             }
         }
 
+        $content = '';
+
         if (function_exists('curl_init') && function_exists('curl_exec')) {
             $options = $this->prepareCurlOptions($url, $method, $data, $forcePostUrlEncoded);
 
@@ -1956,10 +1958,10 @@ didn't change any existing VisitorId value */
             curl_setopt_array($ch, $options);
             ob_start();
             $response = @curl_exec($ch);
+            curl_close($ch);
             ob_end_clean();
             
             $header = '';
-            $content = '';
 
             if ($response === false) {
                 $curlError = curl_error($ch);
