@@ -198,6 +198,8 @@ class MatomoTracker
 
     public $incomingTrackerCookies = [];
 
+    public $visitorCustomVar;
+
     private $requestMethod = null;
 
     /**
