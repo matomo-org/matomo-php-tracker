@@ -27,7 +27,7 @@ class MatomoTracker
      * Must be set before using the class by calling
      * MatomoTracker::$URL = 'http://yourwebsite.org/matomo/';
      */
-    public static string $URL = '';
+    static public $URL = '';
 
     /**
      * API Version
