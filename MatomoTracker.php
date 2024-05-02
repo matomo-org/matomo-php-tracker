@@ -1958,8 +1958,6 @@ didn't change any existing VisitorId value */
             curl_setopt_array($ch, $options);
             ob_start();
             $response = @curl_exec($ch);
-            curl_close($ch);
-            ob_end_clean();
             
             $header = '';
 
@@ -1981,6 +1979,8 @@ didn't change any existing VisitorId value */
 
             $this->parseIncomingCookies(explode("\r\n", $header));
 
+            curl_close($ch);
+            ob_end_clean();
         } elseif (function_exists('stream_context_create')) {
             $stream_options = $this->prepareStreamOptions($method, $data, $forcePostUrlEncoded);
 
