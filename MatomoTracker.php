@@ -63,6 +63,12 @@ class MatomoTracker
      */
     public const FIRST_PARTY_COOKIES_PREFIX = '_pk_';
 
+    /**
+     * Defines how many categories can be used max when calling addEcommerceItem().
+     * @var int
+     */
+    public const MAX_NUM_ECOMMERCE_ITEM_CATEGORIES = 5;
+
     public const DEFAULT_COOKIE_PATH = '/';
 
     private $requestMethod = null;
