@@ -71,6 +71,135 @@ class MatomoTracker
 
     const DEFAULT_COOKIE_PATH = '/';
 
+    public $ecommerceItems = [];
+
+    public $attributionInfo = false;
+
+    public $eventCustomVar = [];
+
+    public $forcedDatetime = false;
+
+    public $forcedNewVisit = false;
+
+    public $networkTime = false;
+
+    public $serverTime = false;
+
+    public $transferTime = false;
+
+    public $domProcessingTime = false;
+
+    public $domCompletionTime = false;
+
+    public $onLoadTime = false;
+
+    public $pageCustomVar = [];
+
+    public $ecommerceView = [];
+
+    public $customParameters = [];
+
+    public $customDimensions = [];
+
+    public $customData = false;
+
+    public $hasCookies = false;
+
+    public $token_auth = false;
+
+    public $userAgent = false;
+
+    public $country = false;
+
+    public $region = false;
+
+    public $city = false;
+
+    public $lat = false;
+
+    public $long = false;
+
+    public $width = false;
+
+    public $height = false;
+
+    public $plugins = false;
+
+    public $localHour = false;
+
+    public $localMinute = false;
+
+    public $localSecond = false;
+
+    public $idPageview = false;
+
+    public $idPageviewSetManually = false;
+
+    public $idSite;
+
+    public $urlReferrer;
+
+    public $pageCharset = self::DEFAULT_CHARSET_PARAMETER_VALUES;
+
+    public $pageUrl;
+
+    public $ip;
+
+    public $acceptLanguage;
+
+    public $clientHints = [];
+
+    // Life of the visitor cookie (in sec)
+    public $configVisitorCookieTimeout = 33955200; // 13 months (365 + 28 days)
+
+    // Life of the session cookie (in sec)
+    public $configSessionCookieTimeout = 1800; // 30 minutes
+
+    // Life of the session cookie (in sec)
+    public $configReferralCookieTimeout = 15768000; // 6 months
+
+    // Visitor Ids in order
+    public $userId = false;
+    
+    public $forcedVisitorId = false;
+    
+    public $cookieVisitorId = false;
+    
+    public $randomVisitorId = false;
+
+    public $configCookiesDisabled = false;
+
+    public $configCookiePath = self::DEFAULT_COOKIE_PATH;
+
+    public $configCookieDomain = '';
+
+    public $configCookieSameSite = '';
+
+    public $configCookieSecure = false;
+
+    public $configCookieHTTPOnly = false;
+
+    public $currentTs;
+
+    public $createTs;
+
+    // Allow debug while blocking the request
+    public $requestTimeout = 600;
+    
+    public $requestConnectTimeout = 300;
+    
+    public $doBulkRequests = false;
+    
+    public $storedTrackingActions = [];
+
+    public $sendImageResponse = true;
+
+    public $outgoingTrackerCookies = [];
+
+    public $incomingTrackerCookies = [];
+
+    public $visitorCustomVar;
+
     private $requestMethod = null;
 
     /**
@@ -83,47 +212,12 @@ class MatomoTracker
      */
     public function __construct($idSite, $apiUrl = '')
     {
-        $this->ecommerceItems = [];
-        $this->attributionInfo = false;
-        $this->eventCustomVar = [];
-        $this->forcedDatetime = false;
-        $this->forcedNewVisit = false;
-        $this->networkTime = false;
-        $this->serverTime = false;
-        $this->transferTime = false;
-        $this->domProcessingTime = false;
-        $this->domCompletionTime = false;
-        $this->onLoadTime = false;
-        $this->pageCustomVar = [];
-        $this->ecommerceView = [];
-        $this->customParameters = [];
-        $this->customDimensions = [];
-        $this->customData = false;
-        $this->hasCookies = false;
-        $this->token_auth = false;
-        $this->userAgent = false;
-        $this->country = false;
-        $this->region = false;
-        $this->city = false;
-        $this->lat = false;
-        $this->long = false;
-        $this->width = false;
-        $this->height = false;
-        $this->plugins = false;
-        $this->localHour = false;
-        $this->localMinute = false;
-        $this->localSecond = false;
-        $this->idPageview = false;
-        $this->idPageviewSetManually = false;
-
         $this->idSite = $idSite;
         $this->urlReferrer = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
-        $this->pageCharset = self::DEFAULT_CHARSET_PARAMETER_VALUES;
         $this->pageUrl = self::getCurrentUrl();
         $this->ip = !empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
         $this->acceptLanguage = !empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : false;
         $this->userAgent = !empty($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : false;
-        $this->clientHints = [];
         $this->setClientHints(
             !empty($_SERVER['HTTP_SEC_CH_UA_MODEL']) ? $_SERVER['HTTP_SEC_CH_UA_MODEL'] : '',
             !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] : '',
@@ -135,43 +229,12 @@ class MatomoTracker
             self::$URL = $apiUrl;
         }
 
-        // Life of the visitor cookie (in sec)
-        $this->configVisitorCookieTimeout = 33955200; // 13 months (365 + 28 days)
-        // Life of the session cookie (in sec)
-        $this->configSessionCookieTimeout = 1800; // 30 minutes
-        // Life of the session cookie (in sec)
-        $this->configReferralCookieTimeout = 15768000; // 6 months
-
-        // Visitor Ids in order
-        $this->userId = false;
-        $this->forcedVisitorId = false;
-        $this->cookieVisitorId = false;
-        $this->randomVisitorId = false;
-
         $this->setNewVisitorId();
-
-        $this->configCookiesDisabled = false;
-        $this->configCookiePath = self::DEFAULT_COOKIE_PATH;
-        $this->configCookieDomain = '';
-        $this->configCookieSameSite = '';
-        $this->configCookieSecure = false;
-        $this->configCookieHTTPOnly = false;
 
         $this->currentTs = time();
         $this->createTs = $this->currentTs;
-
-        // Allow debug while blocking the request
-        $this->requestTimeout = 600;
-        $this->requestConnectTimeout = 300;
-        $this->doBulkRequests = false;
-        $this->storedTrackingActions = [];
-
-        $this->sendImageResponse = true;
-
+        
         $this->visitorCustomVar = $this->getCustomVariablesFromCookie();
-
-        $this->outgoingTrackerCookies = [];
-        $this->incomingTrackerCookies = [];
     }
 
     public function setApiUrl(string $url)
