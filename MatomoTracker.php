@@ -2022,28 +2022,30 @@ didn't change any existing VisitorId value */
             ob_start();
             $response = @curl_exec($ch);
             
-            $header = '';
+            try {
+                $header = '';
 
-            if ($response === false) {
-                $curlError = curl_error($ch);
-                if (!empty($curlError)) {
-                    throw new \RuntimeException($curlError);
+                if ($response === false) {
+                    $curlError = curl_error($ch);
+                    if (!empty($curlError)) {
+                        throw new \RuntimeException($curlError);
+                    }
                 }
-            }            
 
-            if (!empty($response)) {
-                // extract header
-                $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-                $header = substr($response, 0, $headerSize);
+                if (!empty($response)) {
+                    // extract header
+                    $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+                    $header = substr($response, 0, $headerSize);
 
-                // extract content
-                $content = substr($response, $headerSize);
+                    // extract content
+                    $content = substr($response, $headerSize);
+                }
+
+                $this->parseIncomingCookies(explode("\r\n", $header));
+            } finally {
+                curl_close($ch);
+                ob_end_clean();
             }
-
-            $this->parseIncomingCookies(explode("\r\n", $header));
-
-            curl_close($ch);
-            ob_end_clean();
         } elseif (function_exists('stream_context_create')) {
             $stream_options = $this->prepareStreamOptions($method, $data, $forcePostUrlEncoded);
 
