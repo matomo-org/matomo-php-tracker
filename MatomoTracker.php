@@ -37,7 +37,7 @@ class MatomoTracker
      * @ignore
      * @var int
      */
-    const VERSION = 1;
+    public const VERSION = 1;
 
     /**
      * @ignore
@@ -49,27 +49,27 @@ class MatomoTracker
      *
      * @ignore
      */
-    const LENGTH_VISITOR_ID = 16;
+    public const LENGTH_VISITOR_ID = 16;
 
     /**
      * Charset
      * @see setPageCharset
      * @ignore
      */
-    const DEFAULT_CHARSET_PARAMETER_VALUES = 'utf-8';
+    public const DEFAULT_CHARSET_PARAMETER_VALUES = 'utf-8';
 
     /**
      * See matomo.js
      */
-    const FIRST_PARTY_COOKIES_PREFIX = '_pk_';
+    public const FIRST_PARTY_COOKIES_PREFIX = '_pk_';
 
     /**
      * Defines how many categories can be used max when calling addEcommerceItem().
      * @var int
      */
-    const MAX_NUM_ECOMMERCE_ITEM_CATEGORIES = 5;
+    public const MAX_NUM_ECOMMERCE_ITEM_CATEGORIES = 5;
 
-    const DEFAULT_COOKIE_PATH = '/';
+    public const DEFAULT_COOKIE_PATH = '/';
 
     public $ecommerceItems = [];
 
