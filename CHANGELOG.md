@@ -2,6 +2,10 @@
 
 This is the Developer Changelog for Matomo PHP Tracker. All breaking changes or new features are listed below.
 
+## Matomo PHP Tracker 3.3.1
+### Fixed
+- closed curl connection
+
 ## Matomo PHP Tracker 3.3.0
 ### Removed
 - support for PHP versions lower than 7.2
