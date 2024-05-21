@@ -2,6 +2,13 @@
 
 This is the Developer Changelog for Matomo PHP Tracker. All breaking changes or new features are listed below.
 
+## Matomo PHP Tracker 3.3.0
+### Removed
+- support for PHP versions lower than 7.2
+### Changed
+- all `MatomoTracker` class constants are now explicitly public
+- all `MatomoTracker` dynamic properties are now explicitly public
+
 ## Matomo PHP Tracker 3.0.0
 
 Attention: This version of Matomo PHP Tracker is no longer compatible with Matomo 3.x or earlier
