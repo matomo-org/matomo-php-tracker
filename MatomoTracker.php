@@ -250,7 +250,7 @@ class MatomoTracker
      *
      * @return $this
      */
-    public function setPageCharset(string $charset = ''): self
+    public function setPageCharset(string $charset = '')
     {
         $this->pageCharset = $charset;
 
@@ -263,7 +263,7 @@ class MatomoTracker
      * @param string $url Raw URL (not URL encoded)
      * @return $this
      */
-    public function setUrl(string $url): self
+    public function setUrl(string $url)
     {
         $this->pageUrl = $url;
 
@@ -276,7 +276,7 @@ class MatomoTracker
      * @param string $url Raw URL (not URL encoded)
      * @return $this
      */
-    public function setUrlReferrer(string $url): self
+    public function setUrlReferrer(string $url)
     {
         $this->urlReferrer = $url;
 
@@ -292,7 +292,7 @@ class MatomoTracker
      * @deprecated this metric is deprecated please use performance timings instead
      * @see setPerformanceTimings
      */
-    public function setGenerationTime(int $timeMs): self
+    public function setGenerationTime(int $timeMs)
     {
         return $this;
     }
@@ -316,7 +316,7 @@ class MatomoTracker
         ?int $domProcessing = null,
         ?int $domCompletion = null,
         ?int $onload = null
-    ): self {
+    ) {
         $this->networkTime = $network;
         $this->serverTime = $server;
         $this->transferTime = $transfer;
@@ -344,7 +344,7 @@ class MatomoTracker
      * @deprecated
      * @ignore
      */
-    public function setUrlReferer(string $url): self
+    public function setUrlReferer(string $url)
     {
         $this->setUrlReferrer($url);
 
@@ -366,7 +366,7 @@ class MatomoTracker
      * @throws Exception
      * @see function getAttributionInfo() in https://github.com/matomo-org/matomo/blob/master/js/matomo.js
      */
-    public function setAttributionInfo(string $jsonEncoded): self
+    public function setAttributionInfo(string $jsonEncoded)
     {
         $decoded = json_decode($jsonEncoded, $assoc = true);
         if (!is_array($decoded)) {
@@ -393,7 +393,7 @@ class MatomoTracker
         string $name,
         string $value,
         string $scope = 'visit'
-    ): self {
+    ) {
         if ($scope === 'page') {
             $this->pageCustomVar[$id] = array($name, $value);
         } elseif ($scope === 'event') {
@@ -469,7 +469,7 @@ class MatomoTracker
      * @param string $value value for custom dimension
      * @return $this
      */
-    public function setCustomDimension(int $id, string $value): self
+    public function setCustomDimension(int $id, string $value)
     {
         $this->customDimensions['dimension'.$id] = $value;
 
@@ -505,7 +505,7 @@ class MatomoTracker
      * @return $this
      * @throws Exception
      */
-    public function setCustomTrackingParameter(string $trackingApiParameter, string $value): self
+    public function setCustomTrackingParameter(string $trackingApiParameter, string $value)
     {
         $matches = [];
 
@@ -532,7 +532,7 @@ class MatomoTracker
      * Sets the current visitor ID to a random new one.
      * @return $this
      */
-    public function setNewVisitorId(): self
+    public function setNewVisitorId()
     {
         $this->randomVisitorId = substr(md5(uniqid(rand(), true)), 0, self::LENGTH_VISITOR_ID);
         $this->forcedVisitorId = false;
@@ -546,7 +546,7 @@ class MatomoTracker
      *
      * @return $this
      */
-    public function setIdSite(int $idSite): self
+    public function setIdSite(int $idSite)
     {
         $this->idSite = $idSite;
 
@@ -559,7 +559,7 @@ class MatomoTracker
      * @param string $acceptLanguage For example "fr-fr"
      * @return $this
      */
-    public function setBrowserLanguage(string $acceptLanguage): self
+    public function setBrowserLanguage(string $acceptLanguage)
     {
         $this->acceptLanguage = $acceptLanguage;
 
@@ -573,7 +573,7 @@ class MatomoTracker
      * @param string $userAgent
      * @return $this
      */
-    public function setUserAgent(string $userAgent): self
+    public function setUserAgent(string $userAgent)
     {
         $this->userAgent = $userAgent;
 
@@ -602,7 +602,7 @@ class MatomoTracker
         string $platformVersion = '',
         $fullVersionList = '',
         string $uaFullVersion = ''
-    ): self {
+    ) {
         if (is_string($fullVersionList)) {
             $reg  = '/^"([^"]+)"; ?v="([^"]+)"(?:, )?/';
             $list = [];
@@ -636,7 +636,7 @@ class MatomoTracker
      *
      * @return $this
      */
-    public function setCountry(string $country): self
+    public function setCountry(string $country)
     {
         $this->country = $country;
 
@@ -651,7 +651,7 @@ class MatomoTracker
      *
      * @return $this
      */
-    public function setRegion(string $region): self
+    public function setRegion(string $region)
     {
         $this->region = $region;
 
@@ -666,7 +666,7 @@ class MatomoTracker
      *
      * @return $this
      */
-    public function setCity(string $city): self
+    public function setCity(string $city)
     {
         $this->city = $city;
 
@@ -681,7 +681,7 @@ class MatomoTracker
      *
      * @return $this
      */
-    public function setLatitude(float $lat): self
+    public function setLatitude(float $lat)
     {
         $this->lat = $lat;
 
@@ -696,7 +696,7 @@ class MatomoTracker
      *
      * @return $this
      */
-    public function setLongitude(float $long): self
+    public function setLongitude(float $long)
     {
         $this->long = $long;
 
@@ -968,7 +968,7 @@ class MatomoTracker
         $category = '',
         $price = 0.0,
         int $quantity = 1
-    ): self {
+    ) {
         if (empty($sku)) {
             throw new Exception("You must specify a SKU for the Ecommerce item");
         }
@@ -1146,7 +1146,7 @@ class MatomoTracker
         string $name = '',
         $category = '',
         float $price = 0.0
-    ): self {
+    ) {
         $this->ecommerceView = [];
 
         if (!empty($category)) {
@@ -1513,7 +1513,7 @@ class MatomoTracker
      *               If the datetime is older than one day (default value for tracking_requests_require_authentication_when_custom_timestamp_newer_than), then you must call setTokenAuth() with a valid Admin/Super user token.
      * @return $this
      */
-    public function setForceVisitDateTime(string $dateTime): self
+    public function setForceVisitDateTime(string $dateTime)
     {
         $this->forcedDatetime = $dateTime;
 
@@ -1527,7 +1527,7 @@ class MatomoTracker
      * If you call setForceNewVisit() before calling doTrack*, then a new visit will be created for this request.
      * @return $this
      */
-    public function setForceNewVisit(): self
+    public function setForceNewVisit()
     {
         $this->forcedNewVisit = true;
 
@@ -1542,7 +1542,7 @@ class MatomoTracker
      * @param string $ip IP string, eg. 130.54.2.1
      * @return $this
      */
-    public function setIp(string $ip): self
+    public function setIp(string $ip)
     {
         $this->ip = $ip;
 
@@ -1558,7 +1558,7 @@ class MatomoTracker
      * @return $this
      * @throws Exception
      */
-    public function setUserId(string $userId): self
+    public function setUserId(string $userId)
     {
         if ($userId === '') {
             throw new Exception("User ID cannot be empty.");
@@ -1592,7 +1592,7 @@ class MatomoTracker
      * @return $this
      * @throws Exception
      */
-    public function setVisitorId(string $visitorId): self
+    public function setVisitorId(string $visitorId)
     {
         $hexChars = '01234567890abcdefABCDEF';
         if (strlen($visitorId) !== self::LENGTH_VISITOR_ID
@@ -1729,7 +1729,7 @@ didn't change any existing VisitorId value */
      * @param string $token_auth token_auth 32 chars token_auth string
      * @return $this
      */
-    public function setTokenAuth(string $token_auth): self
+    public function setTokenAuth(string $token_auth)
     {
         $this->token_auth = $token_auth;
 
@@ -1742,7 +1742,7 @@ didn't change any existing VisitorId value */
      * @param string $time HH:MM:SS format
      * @return $this
      */
-    public function setLocalTime(string $time): self
+    public function setLocalTime(string $time)
     {
         [$hour, $minute, $second] = explode(':', $time);
         $this->localHour = (int)$hour;
@@ -1759,7 +1759,7 @@ didn't change any existing VisitorId value */
      * @param int $height
      * @return $this
      */
-    public function setResolution(int $width, int $height): self
+    public function setResolution(int $width, int $height)
     {
         $this->width = $width;
         $this->height = $height;
@@ -1773,7 +1773,7 @@ didn't change any existing VisitorId value */
      *
      * @return $this
      */
-    public function setBrowserHasCookies(bool $hasCookies): self
+    public function setBrowserHasCookies(bool $hasCookies)
     {
         $this->hasCookies = $hasCookies;
 
@@ -1785,7 +1785,7 @@ didn't change any existing VisitorId value */
      *
      * @return $this
      */
-    public function setDebugStringAppend(string $debugString): self
+    public function setDebugStringAppend(string $debugString)
     {
         $this->DEBUG_APPEND_URL = '&' . $debugString;
 
@@ -1805,7 +1805,7 @@ didn't change any existing VisitorId value */
         bool $pdf = false,
         bool $windowsMedia = false,
         bool $silverlight = false
-    ): self {
+    ) {
         $this->plugins =
             '&fla=' . (int)$flash .
             '&java=' . (int)$java .
@@ -1844,7 +1844,7 @@ didn't change any existing VisitorId value */
      * @return $this
      * @throws Exception
      */
-    public function setRequestTimeout(int $timeout): self
+    public function setRequestTimeout(int $timeout)
     {
         if ($timeout < 0) {
             throw new Exception("Invalid value supplied for request timeout: $timeout");
@@ -1871,7 +1871,7 @@ didn't change any existing VisitorId value */
      * @return $this
      * @throws Exception
      */
-    public function setRequestConnectTimeout(int $timeout): self
+    public function setRequestConnectTimeout(int $timeout)
     {
         if ($timeout < 0) {
             throw new Exception("Invalid value supplied for request connect timeout: $timeout");
@@ -1891,7 +1891,7 @@ didn't change any existing VisitorId value */
      * @param string $method Either 'POST' or 'GET'
      * @return $this
      */
-    public function setRequestMethodNonBulk(string $method): self
+    public function setRequestMethodNonBulk(string $method)
     {
         $this->requestMethod = strtoupper($method) === 'POST' ? 'POST' : 'GET';
 
@@ -2417,7 +2417,7 @@ didn't change any existing VisitorId value */
      * All cookies are supported: 'id' and 'ses' and 'ref' and 'cvar' cookies.
      * @return $this
      */
-    protected function setFirstPartyCookies(): self
+    protected function setFirstPartyCookies()
     {
         if ($this->configCookiesDisabled) {
             return $this;
@@ -2452,7 +2452,7 @@ didn't change any existing VisitorId value */
      *
      * @return $this
      */
-    protected function setCookie(string $cookieName, $cookieValue, int $cookieTTL): self
+    protected function setCookie(string $cookieName, $cookieValue, int $cookieTTL)
     {
         $cookieExpire = $this->currentTs + $cookieTTL;
         if (!headers_sent()) {
