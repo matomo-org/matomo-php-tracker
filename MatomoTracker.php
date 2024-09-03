@@ -223,7 +223,8 @@ class MatomoTracker
             !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] : '',
             !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] : '',
             !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] : '',
-            !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION'] : ''
+            !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_FORM_FACTORS']) ? $_SERVER['HTTP_SEC_CH_UA_FORM_FACTORS'] : ''
         );
         if (!empty($apiUrl)) {
             self::$URL = $apiUrl;
@@ -574,10 +575,12 @@ class MatomoTracker
      *                                      all brands with the structure
      *                                      [['brand' => 'Chrome', 'version' => '10.0.2'], ['brand' => '...]
      * @param string $uaFullVersion  Value of the header 'HTTP_SEC_CH_UA_FULL_VERSION'
+     * @param string|array<string> $formFactors  Value of the header 'HTTP_SEC_CH_UA_FORM_FACTORS'
+     *      or an array containing all form factors with structure ["Desktop", "XR"]
      *
      * @return $this
      */
-    public function setClientHints($model = '', $platform = '', $platformVersion = '', $fullVersionList = '', $uaFullVersion = '')
+    public function setClientHints($model = '', $platform = '', $platformVersion = '', $fullVersionList = '', $uaFullVersion = '', $formFactors = '')
     {
         if (is_string($fullVersionList)) {
             $reg  = '/^"([^"]+)"; ?v="([^"]+)"(?:, )?/';
@@ -593,12 +596,25 @@ class MatomoTracker
             $fullVersionList = [];
         }
 
+        if (is_string($formFactors)) {
+            $formFactors = explode(',', $formFactors);
+            $formFactors = array_filter(array_map(
+                function ($item) {
+                    return trim($item, '" ');
+                },
+                $formFactors
+            ));
+        } elseif (!is_array($formFactors)) {
+            $formFactors = [];
+        }
+
         $this->clientHints = array_filter([
             'model' => $model,
             'platform' => $platform,
             'platformVersion' => $platformVersion,
             'uaFullVersion' => $uaFullVersion,
             'fullVersionList' => $fullVersionList,
+            'formFactors' => $formFactors
         ]);
 
         return $this;
@@ -777,7 +793,7 @@ class MatomoTracker
 
         return $this->sendRequest($url);
     }
-			 
+
     /**
      * Override PageView id for every use of `doTrackPageView()`. Do not use this if you call `doTrackPageView()`
      * multiple times during tracking (if, for example, you are tracking a single page application).
