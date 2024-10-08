@@ -2037,7 +2037,7 @@ didn't change any existing VisitorId value */
             curl_setopt_array($ch, $options);
             ob_start();
             $response = @curl_exec($ch);
-            
+
             try {
                 $header = '';
 
