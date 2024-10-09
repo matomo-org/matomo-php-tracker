@@ -614,7 +614,7 @@ class MatomoTracker
             'platformVersion' => $platformVersion,
             'uaFullVersion' => $uaFullVersion,
             'fullVersionList' => $fullVersionList,
-            'formFactors' => $formFactors
+            'formFactors' => $formFactors,
         ]);
 
         return $this;
