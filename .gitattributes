@@ -1,2 +1,4 @@
+.git* export-ignore
+phpunit* export-ignore
 tests/ export-ignore
 run_tests.sh export-ignore
