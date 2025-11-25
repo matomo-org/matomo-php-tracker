@@ -84,4 +84,32 @@ class MatomoTrackerTest extends TestCase
 
         $this->assertSame(substr($url, 0, strlen($newApiUrl)), $newApiUrl);
     }
+
+    /**
+     * @dataProvider getTestDataForIsUserAgentAIBot
+     */
+    public function test_isUserAgentAIBot($userAgent, $expected)
+    {
+        $this->assertSame($expected, \MatomoTracker::isUserAgentAIBot($userAgent));
+    }
+
+    public function getTestDataForIsUserAgentAIBot(): array
+    {
+        return [
+            ['', false],
+
+            ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3', false],
+            ['Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.3', false],
+
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.1; +https://openai.com/gptbot', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; MistralAI-User/1.0; +https://docs.mistral.ai/robots)', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Gemini-Deep-Research; +https://gemini.google/overview/deep-research/) Chrome/135.0.0.0 Safari/537.36', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-User/1.0; +Claude-User@anthropic.com)', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)', true],
+            ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleAgent-Mariner; +https://developers.google[dot]com/search/docs/crawling-indexing/google-agent-mariner) Chrome/135.0.0.0 Safari/537.36', true],
+            ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36; Devin/1.0; +devin.ai', true],
+            ['test user agent NovaAct ...', true],
+        ];
+    }
 }

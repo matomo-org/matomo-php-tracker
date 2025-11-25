@@ -31,6 +31,18 @@ class MatomoTracker
      */
     static public $URL = '';
 
+    private static $aiBotUserAgentSubstrings = [
+        'GPTBot',
+        'ChatGPT-User',
+        'MistralAI-User',
+        'Gemini-Deep-Research',
+        'Claude-User',
+        'Perplexity-User',
+        'GoogleAgent',
+        'Devin',
+        'NovaAct',
+    ];
+
     /**
      * API Version
      *
@@ -810,7 +822,25 @@ class MatomoTracker
 
         return $this->sendRequest($url);
     }
-			 
+
+    /**
+     * If the current user agent belongs to an AI agent bot, tracks a pageview action.
+     *
+     * This method should be used server side to track AI bots that do not execute
+     * JavaScript.
+     *
+     * @param string $documentTitle Page title as it will appear in the Actions > Page titles report
+     * @return mixed Response string or true if using bulk requests.
+     */
+    public function doTrackPageViewIfAIBot(string $documentTitle)
+    {
+        if (!self::isUserAgentAIBot($this->userAgent)) {
+            return null;
+        }
+
+        return $this->doTrackPageView($documentTitle);
+    }
+
     /**
      * Override PageView id for every use of `doTrackPageView()`. Do not use this if you call `doTrackPageView()`
      * multiple times during tracking (if, for example, you are tracking a single page application).
@@ -2539,6 +2569,26 @@ didn't change any existing VisitorId value */
                 parse_str($cookies, $this->incomingTrackerCookies);
             }
         }
+    }
+
+    /**
+     * Returns true if the given user agent belongs to a known AI bot.
+     *
+     * @param string $userAgent
+     * @return bool
+     */
+    public static function isUserAgentAIBot(string $userAgent): bool
+    {
+        if (empty($userAgent)) {
+            return false;
+        }
+
+        foreach (self::$aiBotUserAgentSubstrings as $substring) {
+            if (stripos($userAgent, $substring) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
