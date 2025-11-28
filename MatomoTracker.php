@@ -41,8 +41,8 @@ class MatomoTracker
         'GoogleAgent',
         'Devin',
         'NovaAct',
-        'Google-Extended', // TODO
-        'Google-CloudVertexBot', // TODO
+        'Google-Extended',
+        'Google-CloudVertexBot',
     ];
 
     /**
@@ -1248,7 +1248,7 @@ class MatomoTracker
         }
 
         if (!empty($source)) {
-            $url .= '&source=' . $source;
+            $url .= '&source=' . rawurlencode($source);
         }
 
         return $url;

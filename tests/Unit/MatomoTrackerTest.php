@@ -110,6 +110,67 @@ class MatomoTrackerTest extends TestCase
             ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleAgent-Mariner; +https://developers.google[dot]com/search/docs/crawling-indexing/google-agent-mariner) Chrome/135.0.0.0 Safari/537.36', true],
             ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36; Devin/1.0; +devin.ai', true],
             ['test user agent NovaAct ...', true],
+            ['Google-Extended', true],
+            ['test Google-CloudVertexBot test', true],
         ];
+    }
+
+    /**
+     * @dataProvider getTestDataForGetUrlTrackAIBot
+     */
+    public function test_getUrlTrackAIBot(?int $httpStatus, ?int $responseSizeBytes, ?int $serverTimeMs, ?string $source, string $expected)
+    {
+        $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot';
+
+        $tracker = new \MatomoTracker(1, $apiUrl = self::TEST_URL);
+        $tracker->setVisitorId('abcdef01234517ab');
+
+        $actual = $tracker->getUrlTrackAIBot($httpStatus, $responseSizeBytes, $serverTimeMs, $source);
+        $actual = $this->normalizeTrackingUrl($actual);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function getTestDataForGetUrlTrackAIBot(): array
+    {
+        return [
+            [
+                200,
+                34567,
+                123,
+                'wordpress',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&http_status=200&bw_bytes=34567&pf_srv=123&source=wordpress',
+            ],
+
+            [
+                null,
+                34567,
+                null,
+                'something else',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&bw_bytes=34567&source=something%20else',
+            ],
+
+            [
+                null,
+                null,
+                null,
+                null,
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=',
+            ],
+        ];
+    }
+
+    private function normalizeTrackingUrl(string $url)
+    {
+        $nonDeterministicParams = [
+            'r',
+            '_idts',
+        ];
+
+        foreach ($nonDeterministicParams as $param) {
+            $url = preg_replace('/&' . preg_quote($param) . '=[^&]+/', '&r=', $url);
+        }
+
+        return $url;
     }
 }
