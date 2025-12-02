@@ -2328,16 +2328,14 @@ didn't change any existing VisitorId value */
     protected static function getCurrentScriptName(): string
     {
         $url = '';
-        if (!empty($_SERVER['PATH_INFO'])) {
-            $url = $_SERVER['PATH_INFO'];
-        } else {
-            if (!empty($_SERVER['REQUEST_URI'])) {
-                if (($pos = strpos($_SERVER['REQUEST_URI'], '?')) !== false) {
-                    $url = substr($_SERVER['REQUEST_URI'], 0, $pos);
-                } else {
-                    $url = $_SERVER['REQUEST_URI'];
-                }
+        if (!empty($_SERVER['REQUEST_URI'])) {
+            if (($pos = strpos($_SERVER['REQUEST_URI'], '?')) !== false) {
+                $url = substr($_SERVER['REQUEST_URI'], 0, $pos);
+            } else {
+                $url = $_SERVER['REQUEST_URI'];
             }
+        } elseif (!empty($_SERVER['PATH_INFO'])) {
+            $url = $_SERVER['PATH_INFO'];
         }
         if (empty($url) && isset($_SERVER['SCRIPT_NAME'])) {
             $url = $_SERVER['SCRIPT_NAME'];
