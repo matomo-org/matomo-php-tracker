@@ -32,17 +32,13 @@ class MatomoTracker
     static public $URL = '';
 
     private static $aiBotUserAgentSubstrings = [
-        'GPTBot',
         'ChatGPT-User',
         'MistralAI-User',
         'Gemini-Deep-Research',
         'Claude-User',
         'Perplexity-User',
-        'GoogleAgent',
+        'Google-NotebookLM',
         'Devin',
-        'NovaAct',
-        'Google-Extended',
-        'Google-CloudVertexBot',
     ];
 
     /**
@@ -1234,6 +1230,8 @@ class MatomoTracker
     public function getUrlTrackAIBot(?int $httpStatus = null, ?int $responseSizeBytes = null, ?int $serverTimeMs = null, ?string $source = null): string
     {
         $url = $this->getRequest($this->idSite);
+
+        $url .= '&recMode=1';
 
         if (!empty($httpStatus)) {
             $url .= '&http_status=' . $httpStatus;
