@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace Unit;
 
+use MatomoTracker;
 use PHPUnit\Framework\TestCase;
 
 class MatomoTrackerTest extends TestCase
@@ -32,7 +33,7 @@ class MatomoTrackerTest extends TestCase
         $cookieName = '_pk_id_1_f609';
         $_COOKIE[$cookieName] = $testVisitorId . '.' . $createTs;
 
-        $tracker = new \MatomoTracker(1, $apiUrl = self::TEST_URL);
+        $tracker = new MatomoTracker(1, self::TEST_URL);
         $tracker->setUrl('http://somesite.com');
         $url = $tracker->getUrlTrackPageView('test title');
         $url = preg_replace('/&r=\d+/', "", $url);
@@ -60,7 +61,7 @@ class MatomoTrackerTest extends TestCase
         $cookieName = '_pk_id_1_f609';
         $_COOKIE[$cookieName] = $testVisitorId . '.' . $createTs . '.5.' . $currentTs . '.' . $lastVisitTs . '.' . $ecommerceLastOrderTs;
 
-        $tracker = new \MatomoTracker(1, $apiUrl = self::TEST_URL);
+        $tracker = new MatomoTracker(1, self::TEST_URL);
         $tracker->setUrl('http://somesite.com');
         $url = $tracker->getUrlTrackPageView('test title');
         $url = preg_replace('/&r=\d+/', "", $url);
@@ -78,8 +79,17 @@ class MatomoTrackerTest extends TestCase
     public function test_setApiUrl()
     {
         $newApiUrl = 'https://NEW-API-URL.com';
-        $tracker = new \MatomoTracker(1, self::TEST_URL);
+        $tracker = new MatomoTracker(1, self::TEST_URL);
         $tracker->setApiUrl($newApiUrl);
+        $url = $tracker->getUrlTrackPageView('test title');
+
+        $this->assertSame(substr($url, 0, strlen($newApiUrl)), $newApiUrl);
+    }
+
+    public function testUsageApiUrl(): void
+    {
+        $newApiUrl = 'https://NEW-API-URL.com';
+        $tracker = new MatomoTracker(1, $newApiUrl);
         $url = $tracker->getUrlTrackPageView('test title');
 
         $this->assertSame(substr($url, 0, strlen($newApiUrl)), $newApiUrl);

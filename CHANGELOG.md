@@ -6,6 +6,10 @@ This is the Developer Changelog for Matomo PHP Tracker. All breaking changes or 
 ### Changed
 - a lot of arguments of `MatomoTracker` methods have explicitly types
 - a lot of `MatomoTracker` method return types have strict types
+- static `$URL` is deprecated
+
+### Added
+- new private property `apiUrl` for storing API URL
 
 ## Matomo PHP Tracker 3.3.1
 ### Fixed
