@@ -2,6 +2,13 @@
 
 This is the Developer Changelog for Matomo PHP Tracker. All breaking changes or new features are listed below.
 
+## Matomo PHP Tracker 3.4.0
+### Changed
+- static `$URL` is deprecated
+
+### Added
+- new private property `apiUrl` for storing API URL
+
 ## Matomo PHP Tracker 3.3.2
 ### Changed
 - Support for formFactors client hint parameter, supported as of Matomo 5.2.0

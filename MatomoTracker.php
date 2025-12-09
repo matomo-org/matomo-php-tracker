@@ -28,6 +28,7 @@ class MatomoTracker
      * MatomoTracker::$URL = 'http://yourwebsite.org/matomo/';
      *
      * @var string
+     * @deprecated
      */
     static public $URL = '';
 
@@ -202,6 +203,8 @@ class MatomoTracker
 
     private $requestMethod = null;
 
+    private $apiUrl = '';
+
     /**
      * Builds a MatomoTracker object, used to track visits, pages and Goal conversions
      * for a specific website, by using the Matomo Tracking API.
@@ -228,6 +231,7 @@ class MatomoTracker
         );
         if (!empty($apiUrl)) {
             self::$URL = $apiUrl;
+            $this->apiUrl = $apiUrl;
         }
 
         $this->setNewVisitorId();
@@ -241,6 +245,7 @@ class MatomoTracker
     public function setApiUrl(string $url)
     {
         self::$URL = $url;
+        $this->apiUrl = $url;
     }
 
     /**
@@ -2088,23 +2093,25 @@ didn't change any existing VisitorId value */
 
     /**
      * Returns the base URL for the Matomo server.
+     *
+     * @throws Exception
      */
     protected function getBaseUrl()
     {
-        if (empty(self::$URL)) {
+        if ($this->apiUrl === '') {
             throw new Exception(
                 'You must first set the Matomo Tracker URL by calling
                  MatomoTracker::$URL = \'http://your-website.org/matomo/\';'
             );
         }
-        if (strpos(self::$URL, '/matomo.php') === false
-            && strpos(self::$URL, '/proxy-matomo.php') === false
+        if (strpos($this->apiUrl, '/matomo.php') === false
+            && strpos($this->apiUrl, '/proxy-matomo.php') === false
         ) {
-            self::$URL = rtrim(self::$URL, '/');
-            self::$URL .= '/matomo.php';
+            $this->apiUrl = rtrim($this->apiUrl, '/');
+            $this->apiUrl .= '/matomo.php';
         }
 
-        return self::$URL;
+        return $this->apiUrl;
     }
 
     /**
