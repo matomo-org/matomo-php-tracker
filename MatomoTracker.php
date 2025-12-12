@@ -2191,6 +2191,10 @@ didn't change any existing VisitorId value */
             $response = file_get_contents($url, 0, $ctx);
             $content = $response;
 
+            if (function_exists('http_get_last_response_headers')) {
+                $http_response_header = http_get_last_response_headers();
+            }
+
             $this->parseIncomingCookies($http_response_header);
         }
 
