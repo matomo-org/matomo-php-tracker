@@ -2098,20 +2098,24 @@ didn't change any existing VisitorId value */
      */
     protected function getBaseUrl()
     {
-        if ($this->apiUrl === '') {
+        $apiUrl = $this->apiUrl === ''
+            ? self::$URL
+            : $this->apiUrl;
+
+        if ($apiUrl === '') {
             throw new Exception(
                 'You must first set the Matomo Tracker URL by calling
                  MatomoTracker::$URL = \'http://your-website.org/matomo/\';'
             );
         }
-        if (strpos($this->apiUrl, '/matomo.php') === false
-            && strpos($this->apiUrl, '/proxy-matomo.php') === false
+        if (strpos($apiUrl, '/matomo.php') === false
+            && strpos($apiUrl, '/proxy-matomo.php') === false
         ) {
-            $this->apiUrl = rtrim($this->apiUrl, '/');
-            $this->apiUrl .= '/matomo.php';
+            $apiUrl = rtrim($apiUrl, '/');
+            $apiUrl .= '/matomo.php';
         }
 
-        return $this->apiUrl;
+        return $apiUrl;
     }
 
     /**
