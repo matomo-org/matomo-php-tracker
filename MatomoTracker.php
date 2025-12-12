@@ -610,7 +610,7 @@ class MatomoTracker
         string $model = '',
         string $platform = '',
         string $platformVersion = '',
-               $fullVersionList = '',
+        $fullVersionList = '',
         string $uaFullVersion = ''
     ) {
         if (is_string($fullVersionList)) {
@@ -878,8 +878,8 @@ class MatomoTracker
     public function doTrackEvent(
         string $category,
         string $action,
-               $name = false,
-               $value = false
+        $name = false,
+        $value = false
     ) {
         $url = $this->getUrlTrackEvent($category, $action, $name, $value);
 
@@ -918,7 +918,7 @@ class MatomoTracker
         string $interaction,
         string $contentName,
         string $contentPiece = 'Unknown',
-               $contentTarget = false
+        $contentTarget = false
     ) {
         $url = $this->getUrlTrackContentInteraction($interaction, $contentName, $contentPiece, $contentTarget);
 
@@ -938,7 +938,7 @@ class MatomoTracker
     public function doTrackSiteSearch(
         string $keyword,
         string $category = '',
-               $countResults = false
+        $countResults = false
     ) {
         $url = $this->getUrlTrackSiteSearch($keyword, $category, $countResults);
 
@@ -993,8 +993,8 @@ class MatomoTracker
     public function addEcommerceItem(
         string $sku,
         string $name = '',
-               $category = '',
-               $price = 0.0,
+        $category = '',
+        $price = 0.0,
         int $quantity = 1
     ) {
         if (empty($sku)) {
@@ -1172,7 +1172,7 @@ class MatomoTracker
     public function setEcommerceView(
         string $sku = '',
         string $name = '',
-               $category = '',
+        $category = '',
         float $price = 0.0
     ) {
         $this->ecommerceView = [];
@@ -1364,8 +1364,8 @@ class MatomoTracker
     public function getUrlTrackEvent(
         string $category,
         string $action,
-               $name = false,
-               $value = false
+        $name = false,
+        $value = false
     ): string {
         $url = $this->getRequest($this->idSite);
         if (strlen($category) === 0) {
@@ -1437,7 +1437,7 @@ class MatomoTracker
         string $interaction,
         string $contentName,
         string $contentPiece,
-               $contentTarget
+        $contentTarget
     ): string {
         $url = $this->getRequest($this->idSite);
 
