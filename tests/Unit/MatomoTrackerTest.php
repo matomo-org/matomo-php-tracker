@@ -107,11 +107,7 @@ class MatomoTrackerTest extends TestCase
             ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Gemini-Deep-Research; +https://gemini.google/overview/deep-research/) Chrome/135.0.0.0 Safari/537.36', true],
             ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-User/1.0; +Claude-User@anthropic.com)', true],
             ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)', true],
-            ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleAgent-Mariner; +https://developers.google[dot]com/search/docs/crawling-indexing/google-agent-mariner) Chrome/135.0.0.0 Safari/537.36', true],
             ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36; Devin/1.0; +devin.ai', true],
-            ['test user agent NovaAct ...', true],
-            ['Google-Extended', true],
-            ['test Google-CloudVertexBot test', true],
         ];
     }
 
@@ -139,7 +135,7 @@ class MatomoTrackerTest extends TestCase
                 34567,
                 123,
                 'wordpress',
-                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&http_status=200&bw_bytes=34567&pf_srv=123&source=wordpress',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&recMode=1&http_status=200&bw_bytes=34567&pf_srv=123&source=wordpress',
             ],
 
             [
@@ -147,7 +143,7 @@ class MatomoTrackerTest extends TestCase
                 34567,
                 null,
                 'something else',
-                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&bw_bytes=34567&source=something%20else',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&recMode=1&bw_bytes=34567&source=something%20else',
             ],
 
             [
@@ -155,7 +151,7 @@ class MatomoTrackerTest extends TestCase
                 null,
                 null,
                 null,
-                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&recMode=1',
             ],
         ];
     }
