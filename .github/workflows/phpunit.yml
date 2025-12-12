@@ -23,42 +23,8 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-        operating-system: [ubuntu-latest, windows-latest]
-        php-version: ['7.2', '8.3']
-        include:
-          - php-version: 7.3
-            operating-system: ubuntu-latest
-          - php-version: 7.4
-            operating-system: ubuntu-latest
-          - php-version: 8.0
-            operating-system: ubuntu-latest
-          - php-version: 8.1
-            operating-system: ubuntu-latest
-          - php-version: 8.2
-            operating-system: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-version }}
-          tools: composer:v2
-          extensions: memcached
-      - name: "Composer install"
-        run: |
-          composer install --prefer-dist
-      - name: PHPUnit / PHP ${{ matrix.php-version }}
-        run: |
-          php -v
-          ./vendor/bin/phpunit
-
-  build2:
-    name: PHPUnit
-    runs-on: ${{ matrix.operating-system }}
-    strategy:
-      matrix:
-        operating-system: [ macOS-latest ]
-        php-version: [ '7.2', '8.3' ]
+        operating-system: [ubuntu-latest, windows-latest, macOS-latest]
+        php-version: ['7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v2
       - name: Install PHP
