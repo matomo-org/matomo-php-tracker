@@ -119,6 +119,7 @@ class MatomoTrackerTest extends TestCase
         $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot';
 
         $tracker = new \MatomoTracker(1, $apiUrl = self::TEST_URL);
+        $tracker->setUrl('https://example.com/page');
         $tracker->setVisitorId('abcdef01234517ab');
 
         $actual = $tracker->getUrlTrackAIBot($httpStatus, $responseSizeBytes, $serverTimeMs, $source);
@@ -135,7 +136,7 @@ class MatomoTrackerTest extends TestCase
                 34567,
                 123,
                 'wordpress',
-                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&recMode=1&http_status=200&bw_bytes=34567&pf_srv=123&source=wordpress',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=https%3A%2F%2Fexample.com%2Fpage&urlref=&recMode=1&http_status=200&bw_bytes=34567&pf_srv=123&source=wordpress',
             ],
 
             [
@@ -143,7 +144,7 @@ class MatomoTrackerTest extends TestCase
                 34567,
                 null,
                 'something else',
-                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&recMode=1&bw_bytes=34567&source=something%20else',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=https%3A%2F%2Fexample.com%2Fpage&urlref=&recMode=1&bw_bytes=34567&source=something%20else',
             ],
 
             [
@@ -151,7 +152,7 @@ class MatomoTrackerTest extends TestCase
                 null,
                 null,
                 null,
-                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=http%3A%2F%2Funknown%2Fvendor%2Fbin%2Fphpunit&urlref=&recMode=1',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=https%3A%2F%2Fexample.com%2Fpage&urlref=&recMode=1',
             ],
         ];
     }
