@@ -31,7 +31,7 @@ class MatomoTracker
      */
     static public $URL = '';
 
-    private static $aiBotUserAgentSubstrings = [
+    public const AI_BOT_USER_AGENT_SUBSTRINGS = [
         'ChatGPT-User',
         'MistralAI-User',
         'Gemini-Deep-Research',
@@ -1222,9 +1222,12 @@ class MatomoTracker
     }
 
     /**
-     * TODO: tests
-     * TODO: docs
+     * Builds a URL to track a request from an AI bot.
      *
+     * @param int|null $httpStatus the request's HTTP status code, if it is known.
+     * @param int|null $responseSizeBytes the size of the response sent to the AI bot, if known.
+     * @param int|null $serverTimeMs the number of milliseconds it took to process the request, if known.
+     * @param string|null $source
      * @return string
      */
     public function getUrlTrackAIBot(?int $httpStatus = null, ?int $responseSizeBytes = null, ?int $serverTimeMs = null, ?string $source = null): string
@@ -2612,7 +2615,7 @@ didn't change any existing VisitorId value */
             return false;
         }
 
-        foreach (self::$aiBotUserAgentSubstrings as $substring) {
+        foreach (self::AI_BOT_USER_AGENT_SUBSTRINGS as $substring) {
             if (stripos($userAgent, $substring) !== false) {
                 return true;
             }
