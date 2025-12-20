@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Matomo - free/libre analytics platform
  *
@@ -19,7 +20,6 @@
  * @package MatomoTracker
  * @api
  */
-#[AllowDynamicProperties]
 class MatomoTracker
 {
     /**
@@ -29,7 +29,7 @@ class MatomoTracker
      *
      * @var string
      */
-    static public $URL = '';
+    public static $URL = '';
 
     /**
      * API Version
@@ -79,33 +79,75 @@ class MatomoTracker
 
     public $forcedDatetime = false;
 
+    /**
+     * @var bool
+     */
     public $forcedNewVisit = false;
 
-    public $networkTime = false;
+    /**
+     * @var int|null
+     */
+    public $networkTime = null;
 
-    public $serverTime = false;
+    /**
+     * @var int|null
+     */
+    public $serverTime = null;
 
-    public $transferTime = false;
+    /**
+     * @var int|null
+     */
+    public $transferTime = null;
 
-    public $domProcessingTime = false;
+    /**
+     * @var int|null
+     */
+    public $domProcessingTime = null;
 
-    public $domCompletionTime = false;
+    /**
+     * @var int|null
+     */
+    public $domCompletionTime = null;
 
-    public $onLoadTime = false;
+    /**
+     * @var int|null
+     */
+    public $onLoadTime = null;
 
+    /**
+     * @var array
+     */
     public $pageCustomVar = [];
 
+    /**
+     * @var array
+     */
     public $ecommerceView = [];
 
+    /**
+     * @var array
+     */
     public $customParameters = [];
 
+    /**
+     * @var array
+     */
     public $customDimensions = [];
 
-    public $customData = false;
+    /**
+     * @var string
+     */
+    public $customData = '';
 
-    public $hasCookies = false;
+    /**
+     * @var bool|null
+     */
+    public $hasCookies = null;
 
-    public $token_auth = false;
+    /**
+     * @var string|null
+     */
+    protected $token_auth = null;
 
     public $userAgent = false;
 
@@ -147,7 +189,10 @@ class MatomoTracker
 
     public $acceptLanguage;
 
-    public $clientHints = [];
+    /**
+     * @var array
+     */
+    protected $clientHints = [];
 
     // Life of the visitor cookie (in sec)
     public $configVisitorCookieTimeout = 33955200; // 13 months (365 + 28 days)
@@ -159,12 +204,15 @@ class MatomoTracker
     public $configReferralCookieTimeout = 15768000; // 6 months
 
     // Visitor Ids in order
-    public $userId = false;
-    
+    /**
+     * @var string|null
+     */
+    protected $userId = null;
+
     public $forcedVisitorId = false;
-    
+
     public $cookieVisitorId = false;
-    
+
     public $randomVisitorId = false;
 
     public $configCookiesDisabled = false;
@@ -234,7 +282,7 @@ class MatomoTracker
 
         $this->currentTs = time();
         $this->createTs = $this->currentTs;
-        
+
         $this->visitorCustomVar = $this->getCustomVariablesFromCookie();
     }
 
@@ -333,12 +381,12 @@ class MatomoTracker
      */
     public function clearPerformanceTimings(): void
     {
-        $this->networkTime = false;
-        $this->serverTime = false;
-        $this->transferTime = false;
-        $this->domProcessingTime = false;
-        $this->domCompletionTime = false;
-        $this->onLoadTime = false;
+        $this->networkTime = null;
+        $this->serverTime = null;
+        $this->transferTime = null;
+        $this->domProcessingTime = null;
+        $this->domCompletionTime = null;
+        $this->onLoadTime = null;
     }
 
     /**
@@ -439,7 +487,8 @@ class MatomoTracker
         }
         $cookieDecoded = $this->getCustomVariablesFromCookie();
 
-        if (!is_array($cookieDecoded)
+        if (
+            !is_array($cookieDecoded)
             || !isset($cookieDecoded[$id])
             || !is_array($cookieDecoded[$id])
             || count($cookieDecoded[$id]) !== 2
@@ -472,7 +521,7 @@ class MatomoTracker
      */
     public function setCustomDimension(int $id, string $value)
     {
-        $this->customDimensions['dimension'.$id] = $value;
+        $this->customDimensions['dimension' . $id] = $value;
 
         return $this;
     }
@@ -493,7 +542,7 @@ class MatomoTracker
      */
     public function getCustomDimension(int $id): ?string
     {
-        return $this->customDimensions['dimension'.$id] ?? null;
+        return $this->customDimensions['dimension' . $id] ?? null;
     }
 
     /**
@@ -646,6 +695,16 @@ class MatomoTracker
     }
 
     /**
+     * Returns currently set client hints
+     *
+     * @return array
+     */
+    public function getClientHints(): array
+    {
+        return $this->clientHints;
+    }
+
+    /**
      * Sets the country of the visitor. If not used, Matomo will try to find the country
      * using either the visitor's IP address or language.
      *
@@ -730,7 +789,7 @@ class MatomoTracker
     }
 
     /**
-     * Disables the bulk request feature. Make sure to call `doBulkTrack()` before disabling it if you have stored  
+     * Disables the bulk request feature. Make sure to call `doBulkTrack()` before disabling it if you have stored
      * tracking actions previously as this method won't be sending any previously stored actions before disabling it.
      */
     public function disableBulkTracking(): void
@@ -842,7 +901,7 @@ class MatomoTracker
      * Returns the PageView id. If the id was manually set using `setPageViewId()`, that id will be returned.
      * If the id was not set manually, the id that was automatically generated in last `doTrackPageView()` will
      * be returned. If there was no last page view, this will be false.
-     * 
+     *
      * @return string|false The PageView id as string or false if there is none yet.
      */
     public function getPageviewId()
@@ -1571,11 +1630,11 @@ class MatomoTracker
      *
      * A User ID can be a username, UUID or an email address, or any number or string that uniquely identifies a user or client.
      *
-     * @param string $userId Any user ID string (eg. email address, ID, username). Must be non empty. Set to false to de-assign a user id previously set.
+     * @param string|null $userId Any user ID string (eg. email address, ID, username). Must be non empty. Set to null to de-assign a user id previously set.
      * @return $this
      * @throws Exception
      */
-    public function setUserId(string $userId)
+    public function setUserId(?string $userId)
     {
         if ($userId === '') {
             throw new Exception("User ID cannot be empty.");
@@ -1612,7 +1671,8 @@ class MatomoTracker
     public function setVisitorId(string $visitorId)
     {
         $hexChars = '01234567890abcdefABCDEF';
-        if (strlen($visitorId) !== self::LENGTH_VISITOR_ID
+        if (
+            strlen($visitorId) !== self::LENGTH_VISITOR_ID
             || strspn($visitorId, $hexChars) !== strlen($visitorId)
         ) {
             throw new Exception(
@@ -1743,10 +1803,10 @@ didn't change any existing VisitorId value */
      * - force the visitor IP
      * - force the date &  time of the tracking requests rather than track for the current datetime
      *
-     * @param string $token_auth token_auth 32 chars token_auth string
+     * @param string|null $token_auth 32 chars token_auth string or null to unset
      * @return $this
      */
-    public function setTokenAuth(string $token_auth)
+    public function setTokenAuth(?string $token_auth)
     {
         $this->token_auth = $token_auth;
 
@@ -2068,7 +2128,7 @@ didn't change any existing VisitorId value */
             $this->clearCustomDimensions();
             $this->clearCustomTrackingParameters();
             $this->userAgent = false;
-            $this->clientHints = false;
+            $this->clientHints = [];
             $this->acceptLanguage = false;
 
             return true;
@@ -2178,7 +2238,8 @@ didn't change any existing VisitorId value */
                  MatomoTracker::$URL = \'http://your-website.org/matomo/\';'
             );
         }
-        if (strpos(self::$URL, '/matomo.php') === false
+        if (
+            strpos(self::$URL, '/matomo.php') === false
             && strpos(self::$URL, '/proxy-matomo.php') === false
         ) {
             self::$URL = rtrim(self::$URL, '/');
@@ -2281,12 +2342,12 @@ didn't change any existing VisitorId value */
 
         if (!empty($this->idPageview)) {
             $url .=
-                ($this->networkTime !== false ? '&pf_net=' . ((int)$this->networkTime) : '') .
-                ($this->serverTime !== false ? '&pf_srv=' . ((int)$this->serverTime) : '') .
-                ($this->transferTime !== false ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
-                ($this->domProcessingTime !== false ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
-                ($this->domCompletionTime !== false ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
-                ($this->onLoadTime !== false ? '&pf_onl=' . ((int)$this->onLoadTime) : '');
+                ($this->networkTime !== null ? '&pf_net=' . ((int)$this->networkTime) : '') .
+                ($this->serverTime !== null ? '&pf_srv=' . ((int)$this->serverTime) : '') .
+                ($this->transferTime !== null ? '&pf_tfr=' . ((int)$this->transferTime) : '') .
+                ($this->domProcessingTime !== null ? '&pf_dm1=' . ((int)$this->domProcessingTime) : '') .
+                ($this->domCompletionTime !== null ? '&pf_dm2=' . ((int)$this->domCompletionTime) : '') .
+                ($this->onLoadTime !== null ? '&pf_onl=' . ((int)$this->onLoadTime) : '');
             $this->clearPerformanceTimings();
         }
 
@@ -2359,7 +2420,7 @@ didn't change any existing VisitorId value */
         if (empty($url) && isset($_SERVER['SCRIPT_NAME'])) {
             $url = $_SERVER['SCRIPT_NAME'];
         } elseif (empty($url)) {
-        	$url = '/';
+            $url = '/';
         }
 
         if (!empty($url) && $url[0] !== '/') {
@@ -2378,7 +2439,8 @@ didn't change any existing VisitorId value */
      */
     protected static function getCurrentScheme(): string
     {
-        if (isset($_SERVER['HTTPS'])
+        if (
+            isset($_SERVER['HTTPS'])
             && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === true)
         ) {
             return 'https';
@@ -2411,7 +2473,8 @@ didn't change any existing VisitorId value */
     protected static function getCurrentQueryString(): string
     {
         $url = '';
-        if (isset($_SERVER['QUERY_STRING'])
+        if (
+            isset($_SERVER['QUERY_STRING'])
             && !empty($_SERVER['QUERY_STRING'])
         ) {
             $url .= '?' . $_SERVER['QUERY_STRING'];
@@ -2513,8 +2576,7 @@ didn't change any existing VisitorId value */
     {
         if ($value === null) {
             unset($this->outgoingTrackerCookies[$name]);
-        }
-        else {
+        } else {
             $this->outgoingTrackerCookies[$name] = $value;
         }
     }
@@ -2548,7 +2610,7 @@ didn't change any existing VisitorId value */
             $headerName = 'set-cookie:';
             $headerNameLength = strlen($headerName);
 
-            foreach($headers as $header) {
+            foreach ($headers as $header) {
                 if (strpos(strtolower($header), $headerName) !== 0) {
                     continue;
                 }
