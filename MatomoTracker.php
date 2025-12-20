@@ -28,6 +28,7 @@ class MatomoTracker
      * MatomoTracker::$URL = 'http://yourwebsite.org/matomo/';
      *
      * @var string
+     * @deprecated
      */
     static public $URL = '';
 
@@ -202,6 +203,8 @@ class MatomoTracker
 
     private $requestMethod = null;
 
+    private $apiUrl = '';
+
     /**
      * Builds a MatomoTracker object, used to track visits, pages and Goal conversions
      * for a specific website, by using the Matomo Tracking API.
@@ -223,10 +226,12 @@ class MatomoTracker
             !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] : '',
             !empty($_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_PLATFORM_VERSION'] : '',
             !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION_LIST'] : '',
-            !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION'] : ''
+            !empty($_SERVER['HTTP_SEC_CH_UA_FULL_VERSION']) ? $_SERVER['HTTP_SEC_CH_UA_FULL_VERSION'] : '',
+            !empty($_SERVER['HTTP_SEC_CH_UA_FORM_FACTORS']) ? $_SERVER['HTTP_SEC_CH_UA_FORM_FACTORS'] : ''
         );
         if (!empty($apiUrl)) {
             self::$URL = $apiUrl;
+            $this->apiUrl = $apiUrl;
         }
 
         $this->setNewVisitorId();
@@ -240,6 +245,7 @@ class MatomoTracker
     public function setApiUrl(string $url): void
     {
         self::$URL = $url;
+        $this->apiUrl = $url;
     }
 
     /**
@@ -593,6 +599,8 @@ class MatomoTracker
      *      or an array containing all brands with the structure
      *      [['brand' => 'Chrome', 'version' => '10.0.2'], ['brand' => '...]
      * @param string $uaFullVersion  Value of the header 'HTTP_SEC_CH_UA_FULL_VERSION'
+     * @param string|array<string> $formFactors  Value of the header 'HTTP_SEC_CH_UA_FORM_FACTORS'
+     *      or an array containing all form factors with structure ["Desktop", "XR"]
      *
      * @return $this
      */
@@ -601,7 +609,8 @@ class MatomoTracker
         string $platform = '',
         string $platformVersion = '',
         $fullVersionList = '',
-        string $uaFullVersion = ''
+        string $uaFullVersion = '',
+        $formFactors = ''
     ) {
         if (is_string($fullVersionList)) {
             $reg  = '/^"([^"]+)"; ?v="([^"]+)"(?:, )?/';
@@ -617,12 +626,25 @@ class MatomoTracker
             $fullVersionList = [];
         }
 
+        if (is_string($formFactors)) {
+            $formFactors = explode(',', $formFactors);
+            $formFactors = array_filter(array_map(
+                function ($item) {
+                    return trim($item, '" ');
+                },
+                $formFactors
+            ));
+        } elseif (!is_array($formFactors)) {
+            $formFactors = [];
+        }
+
         $this->clientHints = array_filter([
             'model' => $model,
             'platform' => $platform,
             'platformVersion' => $platformVersion,
             'uaFullVersion' => $uaFullVersion,
             'fullVersionList' => $fullVersionList,
+            'formFactors' => $formFactors,
         ]);
 
         return $this;
@@ -810,7 +832,7 @@ class MatomoTracker
 
         return $this->sendRequest($url);
     }
-			 
+
     /**
      * Override PageView id for every use of `doTrackPageView()`. Do not use this if you call `doTrackPageView()`
      * multiple times during tracking (if, for example, you are tracking a single page application).
@@ -2097,7 +2119,7 @@ didn't change any existing VisitorId value */
             curl_setopt_array($ch, $options);
             ob_start();
             $response = @curl_exec($ch);
-            
+
             try {
                 $header = '';
 
@@ -2152,23 +2174,29 @@ didn't change any existing VisitorId value */
 
     /**
      * Returns the base URL for the Matomo server.
+     *
+     * @throws Exception
      */
     protected function getBaseUrl(): string
     {
-        if (empty(self::$URL)) {
+        $apiUrl = $this->apiUrl === ''
+            ? self::$URL
+            : $this->apiUrl;
+
+        if ($apiUrl === '') {
             throw new Exception(
                 'You must first set the Matomo Tracker URL by calling
                  MatomoTracker::$URL = \'http://your-website.org/matomo/\';'
             );
         }
-        if (strpos(self::$URL, '/matomo.php') === false
-            && strpos(self::$URL, '/proxy-matomo.php') === false
+        if (strpos($apiUrl, '/matomo.php') === false
+            && strpos($apiUrl, '/proxy-matomo.php') === false
         ) {
-            self::$URL = rtrim(self::$URL, '/');
-            self::$URL .= '/matomo.php';
+            $apiUrl = rtrim($apiUrl, '/');
+            $apiUrl .= '/matomo.php';
         }
 
-        return self::$URL;
+        return $apiUrl;
     }
 
     /**
