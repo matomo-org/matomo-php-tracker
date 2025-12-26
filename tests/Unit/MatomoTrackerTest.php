@@ -170,4 +170,13 @@ class MatomoTrackerTest extends TestCase
 
         return $url;
     }
+
+    public function testUsageApiUrl(): void
+    {
+        $newApiUrl = 'https://NEW-API-URL.com';
+        $tracker = new \MatomoTracker(1, $newApiUrl);
+        $url = $tracker->getUrlTrackPageView('test title');
+
+        $this->assertSame(substr($url, 0, strlen($newApiUrl)), $newApiUrl);
+    }
 }
