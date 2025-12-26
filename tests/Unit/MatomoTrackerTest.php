@@ -85,6 +85,92 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame(substr($url, 0, strlen($newApiUrl)), $newApiUrl);
     }
 
+    /**
+     * @dataProvider getTestDataForIsUserAgentAIBot
+     */
+    public function test_isUserAgentAIBot($userAgent, $expected)
+    {
+        $this->assertSame($expected, \MatomoTracker::isUserAgentAIBot($userAgent));
+    }
+
+    public function getTestDataForIsUserAgentAIBot(): array
+    {
+        return [
+            ['', false],
+
+            ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3', false],
+            ['Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.3', false],
+
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.1; +https://openai.com/gptbot', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; MistralAI-User/1.0; +https://docs.mistral.ai/robots)', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Gemini-Deep-Research; +https://gemini.google/overview/deep-research/) Chrome/135.0.0.0 Safari/537.36', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-User/1.0; +Claude-User@anthropic.com)', true],
+            ['Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)', true],
+            ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36; Devin/1.0; +devin.ai', true],
+        ];
+    }
+
+    /**
+     * @dataProvider getTestDataForGetUrlTrackAIBot
+     */
+    public function test_getUrlTrackAIBot(?int $httpStatus, ?int $responseSizeBytes, ?int $serverTimeMs, ?string $source, string $expected)
+    {
+        $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot';
+
+        $tracker = new \MatomoTracker(1, $apiUrl = self::TEST_URL);
+        $tracker->setUrl('https://example.com/page');
+        $tracker->setVisitorId('abcdef01234517ab');
+
+        $actual = $tracker->getUrlTrackAIBot($httpStatus, $responseSizeBytes, $serverTimeMs, $source);
+        $actual = $this->normalizeTrackingUrl($actual);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function getTestDataForGetUrlTrackAIBot(): array
+    {
+        return [
+            [
+                200,
+                34567,
+                123,
+                'wordpress',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=https%3A%2F%2Fexample.com%2Fpage&urlref=&recMode=1&http_status=200&bw_bytes=34567&pf_srv=123&source=wordpress',
+            ],
+
+            [
+                null,
+                34567,
+                null,
+                'something else',
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=https%3A%2F%2Fexample.com%2Fpage&urlref=&recMode=1&bw_bytes=34567&source=something%20else',
+            ],
+
+            [
+                null,
+                null,
+                null,
+                null,
+                'http://mymatomo.com/matomo.php?idsite=1&rec=1&apiv=1&r=&r=&cid=abcdef01234517ab&url=https%3A%2F%2Fexample.com%2Fpage&urlref=&recMode=1',
+            ],
+        ];
+    }
+
+    private function normalizeTrackingUrl(string $url)
+    {
+        $nonDeterministicParams = [
+            'r',
+            '_idts',
+        ];
+
+        foreach ($nonDeterministicParams as $param) {
+            $url = preg_replace('/&' . preg_quote($param) . '=[^&]+/', '&r=', $url);
+        }
+
+        return $url;
+    }
+
     public function testUsageApiUrl(): void
     {
         $newApiUrl = 'https://NEW-API-URL.com';
