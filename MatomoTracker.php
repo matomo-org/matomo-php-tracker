@@ -2141,7 +2141,11 @@ didn't change any existing VisitorId value */
 
                 $this->parseIncomingCookies(explode("\r\n", $header));
             } finally {
-                curl_close($ch);
+                // curl_close has no effect since PHP 8.0
+                if (PHP_VERSION_ID < 80000) {
+                    curl_close($ch);
+                }
+
                 ob_end_clean();
             }
         } elseif (function_exists('stream_context_create')) {
