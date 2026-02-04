@@ -39,7 +39,6 @@ class MatomoTracker
         'Claude-User',
         'Perplexity-User',
         'Google-NotebookLM',
-        'Devin',
         'GPTBot',
     ];
 
