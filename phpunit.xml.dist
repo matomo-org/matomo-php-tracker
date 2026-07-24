@@ -5,4 +5,10 @@
       <directory>./tests/Unit</directory>
     </testsuite>
   </testsuites>
+  <source>
+    <include>
+      <file>MatomoTracker.php</file>
+      <file>PiwikTracker.php</file>
+    </include>
+  </source>
 </phpunit>

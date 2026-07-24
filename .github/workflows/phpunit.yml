@@ -32,7 +32,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
-          extensions: json, curl
+          extensions: curl
       - name: "Composer install"
         run: |
           composer install --prefer-dist
@@ -40,3 +40,20 @@ jobs:
         run: |
           php -v
           ./vendor/bin/phpunit
+
+  coverage:
+    name: Code coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+          extensions: curl
+          coverage: pcov
+      - name: "Composer install"
+        run: composer install --prefer-dist
+      - name: PHPUnit with coverage
+        run: ./vendor/bin/phpunit --coverage-text

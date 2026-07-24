@@ -4,3 +4,4 @@ parameters:
     paths:
         - MatomoTracker.php
         - PiwikTracker.php
+        - tests
