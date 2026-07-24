@@ -13,6 +13,9 @@ Attention: this is a major release with breaking changes.
 ### Changed
 - `declare(strict_types=1)` is now enabled and every method has proper parameter and return type hints aligned with how Matomo core handles the corresponding tracking parameters. **Passing a mismatched scalar type now throws a `TypeError` instead of being silently coerced.**
 - Optional "unset" parameters and their corresponding properties and getters now use `null` instead of the previous `false` sentinel. For example `getUserId()`, `getUserAgent()`, `getIp()` and `getPageviewId()` now return `null` (not `false`) when no value is set, and `doTrackEvent()`/`getUrlTrackEvent()` default the event name and value to `null`.
+- All public properties are now natively typed. Assigning a legacy sentinel value such as `false` to e.g. `$tracker->userAgent` now throws a `TypeError`; the `attributionInfo` property defaults to an empty array instead of `false`. Subclasses overriding methods with the old untyped signatures may need to be updated to the new signatures.
+- `setUserId()` now accepts `null` to de-assign a previously set User ID, as the method documentation always promised (previously the `string` type hint made that impossible).
+- `setLatitude()` / `setLongitude()` values of `0.0` (equator / prime meridian) are now sent to Matomo. Previously coordinates of exactly zero were silently dropped.
 - The `do*` tracking methods now declare a `string|bool` return type. In bulk mode they return boolean `true` (previously the value was coerced to the string `"1"`).
 - `doTrackSiteSearch()` / `getUrlTrackSiteSearch()` accept `?int $countResults` and only send `&search_count` when a count is provided (previously `&search_count=0` was always sent).
 - When the stream fallback is used and the request fails, `doBulkTrack()` / the `do*` methods now return `false` instead of an empty string.
@@ -20,6 +23,7 @@ Attention: this is a major release with breaking changes.
 
 ### Added
 - PHPStan static analysis at max level (`phpstan.neon.dist`) and the Matomo coding standard via PHP_CodeSniffer (`phpcs.xml.dist`), both enforced for every pull request through GitHub Actions.
+- A greatly expanded unit test suite covering all tracking parameters, cookie handling and request preparation, with code coverage reported in CI.
 
 ## Matomo PHP Tracker 3.4.0
 ### Changed

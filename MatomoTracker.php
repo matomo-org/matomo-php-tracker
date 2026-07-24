@@ -583,7 +583,7 @@ class MatomoTracker
      */
     public function setNewVisitorId(): self
     {
-        $this->randomVisitorId = substr(md5(uniqid(strval(rand()), true)), 0, self::LENGTH_VISITOR_ID);
+        $this->randomVisitorId = substr(md5(uniqid((string) rand(), true)), 0, self::LENGTH_VISITOR_ID);
         $this->forcedVisitorId = null;
         $this->cookieVisitorId = null;
 
@@ -638,8 +638,8 @@ class MatomoTracker
      * @param string $model  Value of the header 'HTTP_SEC_CH_UA_MODEL'
      * @param string $platform  Value of the header 'HTTP_SEC_CH_UA_PLATFORM'
      * @param string $platformVersion  Value of the header 'HTTP_SEC_CH_UA_PLATFORM_VERSION'
-     * @param string|array<string, mixed> $fullVersionList Value of header 'HTTP_SEC_CH_UA_FULL_VERSION_LIST'
-     *      or an array containing all brands with the structure
+     * @param string|list<array{brand: string, version: string}> $fullVersionList Value of header
+     *      'HTTP_SEC_CH_UA_FULL_VERSION_LIST' or an array containing all brands with the structure
      *      [['brand' => 'Chrome', 'version' => '10.0.2'], ['brand' => '...]
      * @param string $uaFullVersion  Value of the header 'HTTP_SEC_CH_UA_FULL_VERSION'
      * @param string|array<string> $formFactors  Value of the header 'HTTP_SEC_CH_UA_FORM_FACTORS'
@@ -919,7 +919,7 @@ class MatomoTracker
 
     private function generateNewPageviewId(): void
     {
-        $this->idPageview = substr(md5(uniqid(strval(rand()), true)), 0, 6);
+        $this->idPageview = substr(md5(uniqid((string) rand(), true)), 0, 6);
     }
 
     /**
@@ -986,6 +986,7 @@ class MatomoTracker
      * These are used to populate reports in Actions > Site Search.
      *
      * @param string $keyword Searched query on the site
+     * @param string $category (optional) Search engine category if applicable
      * @param int|null $countResults (optional) results displayed on the search result page. Used to track "zero result" keywords.
      *
      * @return string|bool Response or true if using bulk requests.
@@ -1215,7 +1216,7 @@ class MatomoTracker
      *
      * This must be called before doTrackPageView() on this product/category page.
      *
-     * On a category page, you may set the parameter $category only and set the other parameters to false.
+     * On a category page, you may set the parameter $category only and leave the other parameters empty.
      *
      * Tracking Product/Category page views will allow Matomo to report on Product & Categories
      * conversion rates (Conversion rate = Ecommerce orders containing this product or category / Visits to the product or category)
@@ -1235,12 +1236,10 @@ class MatomoTracker
     ): self {
         $this->ecommerceView = [];
 
-        if (!empty($category)) {
-            if (is_array($category)) {
-                $category = (string) json_encode($category);
-            }
-        } else {
-            $category = "";
+        if (empty($category)) {
+            $category = '';
+        } elseif (is_array($category)) {
+            $category = (string) json_encode($category);
         }
         $this->ecommerceView['_pkc'] = $category;
 
@@ -1254,9 +1253,6 @@ class MatomoTracker
         }
         if (!empty($sku)) {
             $this->ecommerceView['_pks'] = $sku;
-        }
-        if (empty($name)) {
-            $name = '';
         }
         $this->ecommerceView['_pkn'] = $name;
 
@@ -1804,7 +1800,7 @@ didn't change any existing VisitorId value */
      */
     public function deleteCookies(): void
     {
-        $cookies = array('id', 'ses', 'cvar', 'ref');
+        $cookies = ['id', 'ses', 'cvar', 'ref'];
         foreach ($cookies as $cookie) {
             $this->setCookie($cookie, '', -86400);
         }
@@ -2099,7 +2095,7 @@ didn't change any existing VisitorId value */
 
         if (!empty($this->outgoingTrackerCookies)) {
             $options[CURLOPT_COOKIE] = http_build_query($this->outgoingTrackerCookies);
-            $this->outgoingTrackerCookies = array();
+            $this->outgoingTrackerCookies = [];
         }
 
         return $options;
@@ -2137,7 +2133,7 @@ didn't change any existing VisitorId value */
 
         if (!empty($this->outgoingTrackerCookies)) {
             $stream_options['http']['header'] .= 'Cookie: ' . http_build_query($this->outgoingTrackerCookies) . "\r\n";
-            $this->outgoingTrackerCookies = array();
+            $this->outgoingTrackerCookies = [];
         }
 
         return $stream_options;
@@ -2175,7 +2171,7 @@ didn't change any existing VisitorId value */
                 $urlParts = explode('?', $url);
 
                 $url = $urlParts[0];
-                $data = $urlParts[1];
+                $data = $urlParts[1] ?? '';
                 $forcePostUrlEncoded = true;
 
                 $method = 'POST';
@@ -2192,7 +2188,7 @@ didn't change any existing VisitorId value */
                     }
                     $data .= $appendTokenString;
                     $data = ltrim($data, '&'); // when no request method set we don't want it to start with '&'
-                } elseif (!empty($this->token_auth)) {
+                } else {
                     // Use GET for all URL parameters
                     $url .= $appendTokenString;
                 }
@@ -2244,10 +2240,14 @@ didn't change any existing VisitorId value */
             $response = file_get_contents($url, false, $ctx);
             $content = $response;
 
+            $responseHeaders = [];
             if (function_exists('http_get_last_response_headers')) {
                 $headers = http_get_last_response_headers();
-                $responseHeaders = is_array($headers) ? $headers : [];
-            } else {
+                if (is_array($headers)) {
+                    $responseHeaders = $headers;
+                }
+            } elseif ($response !== false) {
+                // $http_response_header is only defined when an HTTP response was received
                 $responseHeaders = $http_response_header;
             }
 
@@ -2327,7 +2327,7 @@ didn't change any existing VisitorId value */
             'idsite=' . $idSite .
             '&rec=1' .
             '&apiv=' . self::VERSION .
-            '&r=' . substr(strval(mt_rand()), 2, 6) .
+            '&r=' . substr((string) mt_rand(), 2, 6) .
 
             // XDEBUG_SESSIONS_START and KEY are related to the PHP Debugger, this can be ignored in other languages
             (!empty($_GET['XDEBUG_SESSION_START']) ?
@@ -2380,8 +2380,8 @@ didn't change any existing VisitorId value */
             (!empty($this->country) ? '&country=' . urlencode($this->country) : '') .
             (!empty($this->region) ? '&region=' . urlencode($this->region) : '') .
             (!empty($this->city) ? '&city=' . urlencode($this->city) : '') .
-            (!empty($this->lat) ? '&lat=' . urlencode((string) $this->lat) : '') .
-            (!empty($this->long) ? '&long=' . urlencode((string) $this->long) : '') .
+            ($this->lat !== null ? '&lat=' . urlencode((string) $this->lat) : '') .
+            ($this->long !== null ? '&long=' . urlencode((string) $this->long) : '') .
             $customFields . $customDimensions .
             (!$this->sendImageResponse ? '&send_image=0' : '') .
 
@@ -2437,7 +2437,8 @@ didn't change any existing VisitorId value */
         // but PHP Replaces . with _ http://www.php.net/manual/en/language.variables.predefined.php#72571
         $name = str_replace('.', '_', $name);
         foreach ($_COOKIE as $cookieName => $cookieValue) {
-            if (strpos($cookieName, $name) !== false) {
+            // cookie names that are numeric strings are exposed as integer array keys
+            if (strpos((string) $cookieName, $name) !== false) {
                 return self::toStringValue($cookieValue);
             }
         }
