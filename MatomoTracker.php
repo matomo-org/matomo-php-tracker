@@ -39,7 +39,6 @@ class MatomoTracker
         'Claude-User',
         'Perplexity-User',
         'Google-NotebookLM',
-        'GPTBot',
     ];
 
     /**
@@ -844,12 +843,17 @@ class MatomoTracker
     }
 
     /**
-     * If the current user agent belongs to an AI agent bot, tracks a pageview action.
+     * If the current user agent belongs to a known AI bot, tracks a pageview action.
      *
      * This method should be used server side to track AI bots that do not execute
-     * JavaScript.
+     * JavaScript. If the current user agent is not a known AI bot, nothing is tracked
+     * and null is returned.
      *
-     * @return mixed Response string or true if using bulk requests.
+     * @param int|null $httpStatus the request's HTTP status code, if known.
+     * @param int|null $responseSizeBytes the size of the response sent to the AI bot, if known.
+     * @param int|null $serverTimeMs the number of milliseconds it took to process the request, if known.
+     * @param string|null $source the source/proxy that served the request (max 50 chars), if known.
+     * @return string|null Response string, or null if the current user agent is not a known AI bot.
      */
     public function doTrackPageViewIfAIBot(?int $httpStatus = null, ?int $responseSizeBytes = null, ?int $serverTimeMs = null, ?string $source = null)
     {
@@ -1249,7 +1253,7 @@ class MatomoTracker
      * @param int|null $httpStatus the request's HTTP status code, if it is known.
      * @param int|null $responseSizeBytes the size of the response sent to the AI bot, if known.
      * @param int|null $serverTimeMs the number of milliseconds it took to process the request, if known.
-     * @param string|null $source
+     * @param string|null $source the source/proxy that served the request (max 50 chars), if known.
      * @return string
      */
     public function getUrlTrackAIBot(?int $httpStatus = null, ?int $responseSizeBytes = null, ?int $serverTimeMs = null, ?string $source = null): string
@@ -1258,20 +1262,20 @@ class MatomoTracker
 
         $url .= '&recMode=1';
 
-        if (!empty($httpStatus)) {
+        if ($httpStatus !== null) {
             $url .= '&http_status=' . $httpStatus;
         }
 
-        if (!empty($responseSizeBytes)) {
+        if ($responseSizeBytes !== null) {
             $url .= '&bw_bytes=' . $responseSizeBytes;
         }
 
-        if (!empty($serverTimeMs)) {
+        if ($serverTimeMs !== null) {
             $url .= '&pf_srv=' . $serverTimeMs;
         }
 
-        if (!empty($source)) {
-            $url .= '&source=' . rawurlencode($source);
+        if ($source !== null && $source !== '') {
+            $url .= '&source=' . rawurlencode(substr($source, 0, 50));
         }
 
         return $url;
