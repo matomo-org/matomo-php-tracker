@@ -29,6 +29,7 @@ $matomoTracker->doTrackPageView($matomoPageTitle);
 ```
 
 ## Requirements:
+* PHP 8.1 or newer
 * JSON extension (json_decode, json_encode)
 * cURL or stream extension (to issue the HTTPS request to Matomo)
 
@@ -47,6 +48,20 @@ Alternatively, you can download the files and require the Matomo tracker manuall
 ```
 require_once("MatomoTracker.php");
 ```
+
+## Development
+
+Install the development dependencies with Composer and use the provided scripts:
+
+```
+composer install
+composer test      # run the PHPUnit test suite
+composer phpstan   # run static analysis (PHPStan, max level)
+composer phpcs     # check the coding standard (Matomo)
+composer phpcbf    # auto-fix coding standard violations
+```
+
+PHPStan and PHP_CodeSniffer are also run for every pull request via GitHub Actions.
 
 ## License
 

@@ -1,4 +1,6 @@
 .git* export-ignore
 phpunit* export-ignore
+phpstan.neon.dist export-ignore
+phpcs.xml.dist export-ignore
 tests/ export-ignore
 run_tests.sh export-ignore
