@@ -32,6 +32,15 @@ class MatomoTracker
      */
     static public $URL = '';
 
+    public const AI_BOT_USER_AGENT_SUBSTRINGS = [
+        'ChatGPT-User',
+        'MistralAI-User',
+        'Gemini-Deep-Research',
+        'Claude-User',
+        'Perplexity-User',
+        'Google-NotebookLM',
+    ];
+
     /**
      * API Version
      *
@@ -161,11 +170,11 @@ class MatomoTracker
 
     // Visitor Ids in order
     public $userId = false;
-    
+
     public $forcedVisitorId = false;
-    
+
     public $cookieVisitorId = false;
-    
+
     public $randomVisitorId = false;
 
     public $configCookiesDisabled = false;
@@ -186,11 +195,11 @@ class MatomoTracker
 
     // Allow debug while blocking the request
     public $requestTimeout = 600;
-    
+
     public $requestConnectTimeout = 300;
-    
+
     public $doBulkRequests = false;
-    
+
     public $storedTrackingActions = [];
 
     public $sendImageResponse = true;
@@ -238,7 +247,7 @@ class MatomoTracker
 
         $this->currentTs = time();
         $this->createTs = $this->currentTs;
-        
+
         $this->visitorCustomVar = $this->getCustomVariablesFromCookie();
     }
 
@@ -735,7 +744,7 @@ class MatomoTracker
     }
 
     /**
-     * Disables the bulk request feature. Make sure to call `doBulkTrack()` before disabling it if you have stored  
+     * Disables the bulk request feature. Make sure to call `doBulkTrack()` before disabling it if you have stored
      * tracking actions previously as this method won't be sending any previously stored actions before disabling it.
      */
     public function disableBulkTracking(): void
@@ -834,6 +843,29 @@ class MatomoTracker
     }
 
     /**
+     * If the current user agent belongs to a known AI bot, tracks a pageview action.
+     *
+     * This method should be used server side to track AI bots that do not execute
+     * JavaScript. If the current user agent is not a known AI bot, nothing is tracked
+     * and null is returned.
+     *
+     * @param int|null $httpStatus the request's HTTP status code, if known.
+     * @param int|null $responseSizeBytes the size of the response sent to the AI bot, if known.
+     * @param int|null $serverTimeMs the number of milliseconds it took to process the request, if known.
+     * @param string|null $source the source/proxy that served the request (max 50 chars), if known.
+     * @return string|null Response string, or null if the current user agent is not a known AI bot.
+     */
+    public function doTrackPageViewIfAIBot(?int $httpStatus = null, ?int $responseSizeBytes = null, ?int $serverTimeMs = null, ?string $source = null)
+    {
+        if (!self::isUserAgentAIBot($this->userAgent)) {
+            return null;
+        }
+
+        $url = $this->getUrlTrackAIBot($httpStatus, $responseSizeBytes, $serverTimeMs, $source);
+        return $this->sendRequest($url);
+    }
+
+    /**
      * Override PageView id for every use of `doTrackPageView()`. Do not use this if you call `doTrackPageView()`
      * multiple times during tracking (if, for example, you are tracking a single page application).
      */
@@ -847,7 +879,7 @@ class MatomoTracker
      * Returns the PageView id. If the id was manually set using `setPageViewId()`, that id will be returned.
      * If the id was not set manually, the id that was automatically generated in last `doTrackPageView()` will
      * be returned. If there was no last page view, this will be false.
-     * 
+     *
      * @return string|false The PageView id as string or false if there is none yet.
      */
     public function getPageviewId()
@@ -891,7 +923,7 @@ class MatomoTracker
     public function doTrackContentImpression(
         string $contentName,
         string $contentPiece = 'Unknown',
-        $contentTarget = false
+               $contentTarget = false
     ) {
         $url = $this->getUrlTrackContentImpression($contentName, $contentPiece, $contentTarget);
 
@@ -1216,6 +1248,40 @@ class MatomoTracker
     }
 
     /**
+     * Builds a URL to track a request from an AI bot.
+     *
+     * @param int|null $httpStatus the request's HTTP status code, if it is known.
+     * @param int|null $responseSizeBytes the size of the response sent to the AI bot, if known.
+     * @param int|null $serverTimeMs the number of milliseconds it took to process the request, if known.
+     * @param string|null $source the source/proxy that served the request (max 50 chars), if known.
+     * @return string
+     */
+    public function getUrlTrackAIBot(?int $httpStatus = null, ?int $responseSizeBytes = null, ?int $serverTimeMs = null, ?string $source = null): string
+    {
+        $url = $this->getRequest($this->idSite);
+
+        $url .= '&recMode=1';
+
+        if ($httpStatus !== null) {
+            $url .= '&http_status=' . $httpStatus;
+        }
+
+        if ($responseSizeBytes !== null) {
+            $url .= '&bw_bytes=' . $responseSizeBytes;
+        }
+
+        if ($serverTimeMs !== null) {
+            $url .= '&pf_srv=' . $serverTimeMs;
+        }
+
+        if ($source !== null && $source !== '') {
+            $url .= '&source=' . rawurlencode(substr($source, 0, 50));
+        }
+
+        return $url;
+    }
+
+    /**
      * Returns URL used to track Ecommerce Cart updates
      * Calling this function will reinitializes the property ecommerceItems to empty array
      * so items will have to be added again via addEcommerceItem()
@@ -1362,7 +1428,7 @@ class MatomoTracker
     public function getUrlTrackContentImpression(
         string $contentName,
         string $contentPiece,
-        $contentTarget
+               $contentTarget
     ): string {
         $url = $this->getRequest($this->idSite);
 
@@ -1876,7 +1942,7 @@ didn't change any existing VisitorId value */
 
         return $this;
     }
-	
+
     /**
      * Returns the maximum number of seconds the tracker will spend trying to connect to Matomo.
      * Defaults to 300 seconds.
@@ -1904,7 +1970,7 @@ didn't change any existing VisitorId value */
         return $this;
     }
 
-	/**
+    /**
      * Sets the request method to POST, which is recommended when using setTokenAuth()
      * to prevent the token from being recorded in server logs. Avoid using redirects
      * when using POST to prevent the loss of POST values. When using Log Analytics,
@@ -1957,7 +2023,7 @@ didn't change any existing VisitorId value */
     protected function prepareCurlOptions(
         string $url,
         string $method,
-        $data,
+               $data,
         bool $forcePostUrlEncoded
     ): array {
         $options = [
@@ -2374,7 +2440,7 @@ didn't change any existing VisitorId value */
         if (empty($url) && isset($_SERVER['SCRIPT_NAME'])) {
             $url = $_SERVER['SCRIPT_NAME'];
         } elseif (empty($url)) {
-        	$url = '/';
+            $url = '/';
         }
 
         if (!empty($url) && $url[0] !== '/') {
@@ -2443,9 +2509,9 @@ didn't change any existing VisitorId value */
     protected static function getCurrentUrl(): string
     {
         return self::getCurrentScheme() . '://'
-        . self::getCurrentHost()
-        . self::getCurrentScriptName()
-        . self::getCurrentQueryString();
+            . self::getCurrentHost()
+            . self::getCurrentScriptName()
+            . self::getCurrentQueryString();
     }
 
     /**
@@ -2575,6 +2641,26 @@ didn't change any existing VisitorId value */
                 parse_str($cookies, $this->incomingTrackerCookies);
             }
         }
+    }
+
+    /**
+     * Returns true if the given user agent belongs to a known AI bot.
+     *
+     * @param string $userAgent
+     * @return bool
+     */
+    public static function isUserAgentAIBot(string $userAgent): bool
+    {
+        if (empty($userAgent)) {
+            return false;
+        }
+
+        foreach (self::AI_BOT_USER_AGENT_SUBSTRINGS as $substring) {
+            if (stripos($userAgent, $substring) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
