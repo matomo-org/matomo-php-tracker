@@ -17,12 +17,18 @@
         "source": "https://github.com/matomo-org/matomo-php-tracker"
     },
     "require": {
-        "php": "~7.2 || ~7.3 || ~7.4 || ~8.0 || ~8.1 || ~8.2 || ~8.3 || ~8.4 || ~8.5",
+        "php": "^8.1",
         "ext-json": "*"
     },
     "suggest": {
         "ext-curl": "Using this extension to issue the HTTPS request to Matomo"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/matomo-org/matomo-coding-standards.git"
+        }
+    ],
     "autoload": {
         "classmap": ["."]
     },
@@ -32,6 +38,24 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^8.5 || ^9.3 || ^10.1"
+        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": "^2",
+        "squizlabs/php_codesniffer": "^3.10",
+        "matomo-org/matomo-coding-standards": "dev-master",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "config": {
+        "platform": {
+            "php": "8.1.0"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse",
+        "phpcs": "phpcs",
+        "phpcbf": "phpcbf"
     }
 }
