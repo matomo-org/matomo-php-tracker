@@ -8,6 +8,7 @@ Attention: this is a major release with breaking changes.
 
 ### Removed
 - Support for PHP versions lower than 8.1. The tracker now requires PHP 8.1 or newer.
+- The `#[AllowDynamicProperties]` attribute. All properties are now declared explicitly, so setting undeclared dynamic properties on a tracker instance is no longer supported (extend `MatomoTracker` and declare the property instead).
 
 ### Changed
 - `declare(strict_types=1)` is now enabled and every method has proper parameter and return type hints aligned with how Matomo core handles the corresponding tracking parameters. **Passing a mismatched scalar type now throws a `TypeError` instead of being silently coerced.**

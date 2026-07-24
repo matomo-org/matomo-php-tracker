@@ -22,7 +22,6 @@ declare(strict_types=1);
  * @package MatomoTracker
  * @api
  */
-#[AllowDynamicProperties]
 class MatomoTracker
 {
     /**
