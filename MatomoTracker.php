@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Matomo - free/libre analytics platform
  *
@@ -541,7 +542,7 @@ class MatomoTracker
      */
     public function getCustomDimension(int $id): ?string
     {
-        return $this->customDimensions['dimension'.$id] ?? null;
+        return $this->customDimensions['dimension' . $id] ?? null;
     }
 
     /**
@@ -1707,7 +1708,8 @@ class MatomoTracker
     public function setVisitorId(string $visitorId): self
     {
         $hexChars = '01234567890abcdefABCDEF';
-        if (strlen($visitorId) !== self::LENGTH_VISITOR_ID
+        if (
+            strlen($visitorId) !== self::LENGTH_VISITOR_ID
             || strspn($visitorId, $hexChars) !== strlen($visitorId)
         ) {
             throw new Exception(
@@ -2288,7 +2290,8 @@ didn't change any existing VisitorId value */
                  MatomoTracker::$URL = \'http://your-website.org/matomo/\';'
             );
         }
-        if (strpos($apiUrl, '/matomo.php') === false
+        if (
+            strpos($apiUrl, '/matomo.php') === false
             && strpos($apiUrl, '/proxy-matomo.php') === false
         ) {
             $apiUrl = rtrim($apiUrl, '/');
@@ -2486,7 +2489,8 @@ didn't change any existing VisitorId value */
      */
     protected static function getCurrentScheme(): string
     {
-        if (isset($_SERVER['HTTPS'])
+        if (
+            isset($_SERVER['HTTPS'])
             && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === true)
         ) {
             return 'https';

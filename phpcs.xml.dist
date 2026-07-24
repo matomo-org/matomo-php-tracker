@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<ruleset name="matomo-php-tracker">
+    <description>Matomo PHP Tracker Coding Standard</description>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <file>MatomoTracker.php</file>
+    <file>PiwikTracker.php</file>
+    <file>tests</file>
+
+    <rule ref="Matomo"/>
+
+    <!-- The tracker intentionally ships long single-line query-string concatenations. -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="400"/>
+            <property name="absoluteLineLimit" value="400"/>
+        </properties>
+    </rule>
+
+    <!-- The tracker files define a class together with global helper functions and an include. -->
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>MatomoTracker.php</exclude-pattern>
+        <exclude-pattern>PiwikTracker.php</exclude-pattern>
+    </rule>
+
+    <!-- The public classes are intentionally global (no namespace) for backwards compatibility. -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>MatomoTracker.php</exclude-pattern>
+        <exclude-pattern>PiwikTracker.php</exclude-pattern>
+    </rule>
+</ruleset>

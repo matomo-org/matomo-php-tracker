@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Matomo - free/libre analytics platform
  *
@@ -14,15 +12,17 @@ declare(strict_types=1);
  * @package MatomoTracker
  */
 
+declare(strict_types=1);
+
 namespace Unit;
 
 use PHPUnit\Framework\TestCase;
 
 class MatomoTrackerTest extends TestCase
 {
-    const TEST_URL = 'http://mymatomo.com';
+    public const TEST_URL = 'http://mymatomo.com';
 
-    public function test_trackingWithCookieSetsCorrectUrl()
+    public function testTrackingWithCookieSetsCorrectUrl()
     {
         $testVisitorId = substr(md5('testuuid'), 0, 16);
         $this->assertEquals(16, strlen($testVisitorId));
@@ -47,7 +47,7 @@ class MatomoTrackerTest extends TestCase
         $this->assertEquals($expected, $url);
     }
 
-    public function test_trackingWithPreMatomo4CookieSetsCorrectUrl()
+    public function testTrackingWithPreMatomo4CookieSetsCorrectUrl()
     {
         $testVisitorId = substr(md5('testother'), 0, 16);
         $this->assertEquals(16, strlen($testVisitorId));
@@ -75,7 +75,7 @@ class MatomoTrackerTest extends TestCase
         $this->assertEquals($expected, $url);
     }
 
-    public function test_setApiUrl()
+    public function testSetApiUrl()
     {
         $newApiUrl = 'https://NEW-API-URL.com';
         $tracker = new \MatomoTracker(1, self::TEST_URL);
@@ -88,7 +88,7 @@ class MatomoTrackerTest extends TestCase
     /**
      * @dataProvider getTestDataForIsUserAgentAIBot
      */
-    public function test_isUserAgentAIBot($userAgent, $expected)
+    public function testIsUserAgentAIBot($userAgent, $expected)
     {
         $this->assertSame($expected, \MatomoTracker::isUserAgentAIBot($userAgent));
     }
@@ -114,7 +114,7 @@ class MatomoTrackerTest extends TestCase
     /**
      * @dataProvider getTestDataForGetUrlTrackAIBot
      */
-    public function test_getUrlTrackAIBot(?int $httpStatus, ?int $responseSizeBytes, ?int $serverTimeMs, ?string $source, string $expected)
+    public function testGetUrlTrackAIBot(?int $httpStatus, ?int $responseSizeBytes, ?int $serverTimeMs, ?string $source, string $expected)
     {
         $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot';
 
