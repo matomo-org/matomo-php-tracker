@@ -93,7 +93,7 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame($expected, \MatomoTracker::isUserAgentAIBot($userAgent));
     }
 
-    public function getTestDataForIsUserAgentAIBot(): array
+    public static function getTestDataForIsUserAgentAIBot(): array
     {
         return [
             ['', false],
@@ -128,7 +128,7 @@ class MatomoTrackerTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    public function getTestDataForGetUrlTrackAIBot(): array
+    public static function getTestDataForGetUrlTrackAIBot(): array
     {
         return [
             [
