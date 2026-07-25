@@ -1408,6 +1408,19 @@ class MatomoTrackerTest extends TestCase
         $this->assertArrayNotHasKey(CURLOPT_COOKIE, $options);
     }
 
+    public function testSetCurlOptionsExtendAndOverrideDefaults(): void
+    {
+        $tracker = $this->createTracker();
+        $tracker->setCurlOptions([
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4, // extends the defaults
+            CURLOPT_TIMEOUT => 1,                   // overrides the built-in timeout
+        ]);
+
+        $options = $tracker->callPrepareCurlOptions('http://example.org', 'GET', null, false);
+        $this->assertSame(CURL_IPRESOLVE_V4, $options[CURLOPT_IPRESOLVE]);
+        $this->assertSame(1, $options[CURLOPT_TIMEOUT]);
+    }
+
     public function testPrepareStreamOptions(): void
     {
         $tracker = $this->createTracker();

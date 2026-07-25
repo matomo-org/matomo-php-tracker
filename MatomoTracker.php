@@ -265,6 +265,13 @@ class MatomoTracker
     private int $proxyPort = 80;
 
     /**
+     * Additional cURL options set via setCurlOptions(), applied last so they override the defaults.
+     *
+     * @var array<int, mixed>
+     */
+    private array $curlOptions = [];
+
+    /**
      * Builds a MatomoTracker object, used to track visits, pages and Goal conversions
      * for a specific website, by using the Matomo Tracking API.
      *
@@ -2048,6 +2055,23 @@ didn't change any existing VisitorId value */
     }
 
     /**
+     * Sets additional cURL options (a map of CURLOPT_* constant => value) for the tracking
+     * requests. They are applied after the built-in options, so they can extend them (e.g.
+     * `CURLOPT_IPRESOLVE`, `CURLOPT_HTTP_VERSION`) or override them. Only used on the cURL
+     * transport. Overriding core options such as CURLOPT_RETURNTRANSFER or CURLOPT_HEADER may
+     * break response handling, so use with care.
+     *
+     * @param array<int, mixed> $curlOptions
+     * @return $this
+     */
+    public function setCurlOptions(array $curlOptions): self
+    {
+        $this->curlOptions = $curlOptions;
+
+        return $this;
+    }
+
+    /**
      * If the proxy IP and the proxy port have been set, with the setProxy() function
      * returns a string, like "173.234.92.107:80"
      */
@@ -2137,6 +2161,11 @@ didn't change any existing VisitorId value */
         if (!empty($this->outgoingTrackerCookies)) {
             $options[CURLOPT_COOKIE] = http_build_query($this->outgoingTrackerCookies);
             $this->outgoingTrackerCookies = [];
+        }
+
+        // Caller-supplied options are applied last so they can extend or override the defaults.
+        if (!empty($this->curlOptions)) {
+            $options = array_replace($options, $this->curlOptions);
         }
 
         return $options;

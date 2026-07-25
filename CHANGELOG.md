@@ -34,6 +34,7 @@ Attention: this is a major release with breaking changes.
 - PHPStan static analysis at max level (`phpstan.neon.dist`) and the Matomo coding standard via PHP_CodeSniffer (`phpcs.xml.dist`), both enforced for every pull request through GitHub Actions.
 - A greatly expanded unit test suite covering all tracking parameters, cookie handling and request preparation, with code coverage reported in CI.
 - `setDebugTrackingParameter()` (`@internal` test helper) to append a raw, unvalidated tracking parameter that overrides any built-in parameter of the same name, so integration tests can verify server-side handling of malformed values.
+- `setCurlOptions(array)` to pass additional cURL options (e.g. `CURLOPT_IPRESOLVE`, `CURLOPT_HTTP_VERSION`) for the tracking requests; they are applied after the built-in options (#92).
 
 ## Matomo PHP Tracker 3.4.0
 ### Changed
