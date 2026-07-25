@@ -228,9 +228,9 @@ class MatomoTracker
     public int $createTs;
 
     // Allow debug while blocking the request
-    public int $requestTimeout = 600;
+    public int $requestTimeout = 5;
 
-    public int $requestConnectTimeout = 300;
+    public int $requestConnectTimeout = 2;
 
     public bool $doBulkRequests = false;
 
@@ -1969,7 +1969,7 @@ didn't change any existing VisitorId value */
 
     /**
      * Returns the maximum number of seconds the tracker will spend waiting for a response
-     * from Matomo. Defaults to 600 seconds.
+     * from Matomo. Defaults to 5 seconds.
      */
     public function getRequestTimeout(): int
     {
@@ -1996,7 +1996,7 @@ didn't change any existing VisitorId value */
 
     /**
      * Returns the maximum number of seconds the tracker will spend trying to connect to Matomo.
-     * Defaults to 300 seconds.
+     * Defaults to 2 seconds.
      */
     public function getRequestConnectTimeout(): int
     {

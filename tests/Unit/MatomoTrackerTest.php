@@ -1340,11 +1340,11 @@ class MatomoTrackerTest extends TestCase
     {
         $tracker = $this->createTracker();
 
-        $this->assertSame(600, $tracker->getRequestTimeout());
+        $this->assertSame(5, $tracker->getRequestTimeout());
         $tracker->setRequestTimeout(10);
         $this->assertSame(10, $tracker->getRequestTimeout());
 
-        $this->assertSame(300, $tracker->getRequestConnectTimeout());
+        $this->assertSame(2, $tracker->getRequestConnectTimeout());
         $tracker->setRequestConnectTimeout(5);
         $this->assertSame(5, $tracker->getRequestConnectTimeout());
     }

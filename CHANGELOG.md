@@ -22,6 +22,7 @@ Attention: this is a major release with breaking changes.
 - The `do*` tracking methods now declare a `string|bool` return type. In bulk mode they return boolean `true` (previously the value was coerced to the string `"1"`).
 - `doTrackSiteSearch()` / `getUrlTrackSiteSearch()` accept `?int $countResults` and only send `&search_count` when a count is provided (previously `&search_count=0` was always sent).
 - When the stream fallback is used and the request fails, `doBulkTrack()` / the `do*` methods now return `false` instead of an empty string.
+- Lowered the default request timeouts from 600s/300s to 5s/2s so a slow or unreachable Matomo can no longer block the calling page for minutes (#88). Raise them again via `setRequestTimeout()` / `setRequestConnectTimeout()` if needed.
 - Bumped the test suite to PHPUnit 10.5.
 
 ### Fixed
