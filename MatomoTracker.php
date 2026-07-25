@@ -1035,10 +1035,11 @@ class MatomoTracker
      * Records a Goal conversion
      *
      * @param int $idGoal Id Goal to record a conversion
-     * @param float $revenue Revenue for this conversion
+     * @param float|null $revenue Revenue for this conversion. Pass null (default) to omit the
+     *      revenue so Matomo uses the goal's configured revenue; pass 0.0 to force a zero revenue.
      * @return string|bool Response or true if using bulk request
      */
-    public function doTrackGoal(int $idGoal, float $revenue = 0.0): string|bool
+    public function doTrackGoal(int $idGoal, ?float $revenue = null): string|bool
     {
         $url = $this->getUrlTrackGoal($idGoal, $revenue);
 
@@ -1157,19 +1158,19 @@ class MatomoTracker
      *                This will be used to count this order only once in the event the order page is reloaded several times.
      *                orderId must be unique for each transaction, even on different days, or the transaction will not be recorded by Matomo.
      * @param float $grandTotal (required) Grand Total revenue of the transaction (including tax, shipping, etc.)
-     * @param float $subTotal (optional) Sub total amount, typically the sum of items prices for all items in this order (before Tax and Shipping costs are applied)
-     * @param float $tax (optional) Tax amount for this order
-     * @param float $shipping (optional) Shipping amount for this order
-     * @param float $discount (optional) Discounted amount in this order
+     * @param float|null $subTotal (optional) Sub total amount, typically the sum of items prices for all items in this order (before Tax and Shipping costs are applied). Pass null to omit, 0.0 to send an explicit zero.
+     * @param float|null $tax (optional) Tax amount for this order
+     * @param float|null $shipping (optional) Shipping amount for this order
+     * @param float|null $discount (optional) Discounted amount in this order
      * @return string|bool Response or true if using bulk request
      */
     public function doTrackEcommerceOrder(
         string|int $orderId,
         float $grandTotal,
-        float $subTotal = 0.0,
-        float $tax = 0.0,
-        float $shipping = 0.0,
-        float $discount = 0.0
+        ?float $subTotal = null,
+        ?float $tax = null,
+        ?float $shipping = null,
+        ?float $discount = null
     ): string|bool {
         $url = $this->getUrlTrackEcommerceOrder($orderId, $grandTotal, $subTotal, $tax, $shipping, $discount);
 
@@ -1354,10 +1355,10 @@ class MatomoTracker
     public function getUrlTrackEcommerceOrder(
         string|int $orderId,
         float $grandTotal,
-        float $subTotal = 0.0,
-        float $tax = 0.0,
-        float $shipping = 0.0,
-        float $discount = 0.0
+        ?float $subTotal = null,
+        ?float $tax = null,
+        ?float $shipping = null,
+        ?float $discount = null
     ): string {
         if (empty($orderId)) {
             throw new Exception("You must specifiy an orderId for the Ecommerce order");
@@ -1378,32 +1379,26 @@ class MatomoTracker
      */
     protected function getUrlTrackEcommerce(
         float $grandTotal,
-        float $subTotal = 0.0,
-        float $tax = 0.0,
-        float $shipping = 0.0,
-        float $discount = 0.0
+        ?float $subTotal = null,
+        ?float $tax = null,
+        ?float $shipping = null,
+        ?float $discount = null
     ): string {
         $url = $this->getRequest($this->idSite);
         $url .= '&idgoal=0';
-        if (!empty($grandTotal)) {
-            $grandTotal = $this->forceDotAsSeparatorForDecimalPoint($grandTotal);
-            $url .= '&revenue=' . $grandTotal;
+        // grandTotal is required, so it is always sent (including an explicit 0).
+        $url .= '&revenue=' . $this->forceDotAsSeparatorForDecimalPoint($grandTotal);
+        if ($subTotal !== null) {
+            $url .= '&ec_st=' . $this->forceDotAsSeparatorForDecimalPoint($subTotal);
         }
-        if (!empty($subTotal)) {
-            $subTotal = $this->forceDotAsSeparatorForDecimalPoint($subTotal);
-            $url .= '&ec_st=' . $subTotal;
+        if ($tax !== null) {
+            $url .= '&ec_tx=' . $this->forceDotAsSeparatorForDecimalPoint($tax);
         }
-        if (!empty($tax)) {
-            $tax = $this->forceDotAsSeparatorForDecimalPoint($tax);
-            $url .= '&ec_tx=' . $tax;
+        if ($shipping !== null) {
+            $url .= '&ec_sh=' . $this->forceDotAsSeparatorForDecimalPoint($shipping);
         }
-        if (!empty($shipping)) {
-            $shipping = $this->forceDotAsSeparatorForDecimalPoint($shipping);
-            $url .= '&ec_sh=' . $shipping;
-        }
-        if (!empty($discount)) {
-            $discount = $this->forceDotAsSeparatorForDecimalPoint($discount);
-            $url .= '&ec_dt=' . $discount;
+        if ($discount !== null) {
+            $url .= '&ec_dt=' . $this->forceDotAsSeparatorForDecimalPoint($discount);
         }
         if (!empty($this->ecommerceItems)) {
             $url .= '&ec_items=' . urlencode((string) json_encode($this->ecommerceItems));
@@ -1565,14 +1560,15 @@ class MatomoTracker
      *
      * @see doTrackGoal()
      * @param int $idGoal Id Goal to record a conversion
-     * @param float $revenue Revenue for this conversion
+     * @param float|null $revenue Revenue for this conversion. Pass null (default) to omit the
+     *      revenue so Matomo uses the goal's configured revenue; pass 0.0 to force a zero revenue.
      * @return string URL to matomo.php with all parameters set to track the goal conversion
      */
-    public function getUrlTrackGoal(int $idGoal, float $revenue = 0.0): string
+    public function getUrlTrackGoal(int $idGoal, ?float $revenue = null): string
     {
         $url = $this->getRequest($this->idSite);
         $url .= '&idgoal=' . $idGoal;
-        if (!empty($revenue)) {
+        if ($revenue !== null) {
             $url .= '&revenue=' . $this->forceDotAsSeparatorForDecimalPoint($revenue);
         }
 
@@ -2776,10 +2772,10 @@ function Matomo_getUrlTrackPageView(int $idSite, string $documentTitle = ''): st
  *
  * @param int $idSite
  * @param int $idGoal
- * @param float $revenue
+ * @param float|null $revenue
  * @return string
  */
-function Matomo_getUrlTrackGoal(int $idSite, int $idGoal, float $revenue = 0.0): string
+function Matomo_getUrlTrackGoal(int $idSite, int $idGoal, ?float $revenue = null): string
 {
     $tracker = new MatomoTracker($idSite);
 

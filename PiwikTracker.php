@@ -37,10 +37,10 @@ function Piwik_getUrlTrackPageView(int $idSite, string $documentTitle = ''): str
  * @deprecated
  * @param int $idSite
  * @param int $idGoal
- * @param float $revenue
+ * @param float|null $revenue
  * @return string
  */
-function Piwik_getUrlTrackGoal(int $idSite, int $idGoal, float $revenue = 0.0): string
+function Piwik_getUrlTrackGoal(int $idSite, int $idGoal, ?float $revenue = null): string
 {
     return Matomo_getUrlTrackGoal($idSite, $idGoal, $revenue);
 }

@@ -607,8 +607,40 @@ class MatomoTrackerTest extends TestCase
         $tracker = $this->createTracker();
         $url = $tracker->getUrlTrackEcommerceCartUpdate(0.0);
 
+        // grandTotal is required, so an explicit zero total is sent as revenue=0
         $this->assertStringContainsString('&idgoal=0', $url);
-        $this->assertStringNotContainsString('&revenue=', $url);
+        $this->assertStringContainsString('&revenue=0', $url);
+    }
+
+    public function testGoalRevenueOmittedByDefaultButZeroIsSent(): void
+    {
+        $tracker = $this->createTracker();
+
+        // no revenue argument -> revenue omitted (Matomo uses the goal's configured revenue)
+        $this->assertStringNotContainsString('&revenue=', $tracker->getUrlTrackGoal(1));
+
+        // explicit 0.0 -> revenue=0 is sent (distinct from "unset")
+        $this->assertStringContainsString('&revenue=0', $tracker->getUrlTrackGoal(1, 0.0));
+
+        // a real value is sent as-is
+        $this->assertStringContainsString('&revenue=12.5', $tracker->getUrlTrackGoal(1, 12.5));
+    }
+
+    public function testEcommerceOptionalAmountsOmittedByDefaultButZeroIsSent(): void
+    {
+        $tracker = $this->createTracker();
+
+        // subtotal/tax/shipping/discount omitted when not provided
+        $url = $tracker->getUrlTrackEcommerceOrder('order-1', 10.0);
+        $this->assertStringNotContainsString('&ec_st=', $url);
+        $this->assertStringNotContainsString('&ec_tx=', $url);
+
+        // explicit zeros are sent
+        $url = $tracker->getUrlTrackEcommerceOrder('order-2', 10.0, 0.0, 0.0, 0.0, 0.0);
+        $this->assertStringContainsString('&ec_st=0', $url);
+        $this->assertStringContainsString('&ec_tx=0', $url);
+        $this->assertStringContainsString('&ec_sh=0', $url);
+        $this->assertStringContainsString('&ec_dt=0', $url);
     }
 
     public function testSetEcommerceView(): void
