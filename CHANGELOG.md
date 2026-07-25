@@ -27,7 +27,10 @@ Attention: this is a major release with breaking changes.
 
 ### Fixed
 - All tracking parameter values are now consistently URL-encoded (including `_refts`, `data`/`customData` and `cs`/charset), and the visitor ID read from the first-party cookie is validated as a 16-character hexadecimal string.
-- Request-failure exceptions no longer include the full request URL (only the target host), so its query string is never surfaced in error messages/logs.
+- Request-failure exceptions no longer include the full request URL (only the target host), so its query string is never surfaced in error messages/logs. The request URL and body are also marked `#[\SensitiveParameter]` so they are redacted from exception stack traces.
+- Authenticated requests that carry `token_auth` in the request body are now sent as `POST`; previously the stream transport sent them as `GET`, so Matomo ignored the token in the body.
+- The stream transport now returns the response body for HTTP 4xx/5xx responses (like cURL) instead of turning them into a failure.
+- Bulk tracking uses a more generous request timeout (at least 30s) and no longer discards the queued actions when a batch fails to send, so the batch can be retried.
 - Outgoing tracker cookies are now joined with `; ` (not `&`), and all incoming `Set-Cookie` response headers are parsed instead of only the last one; `getIncomingTrackerCookie()` returns `string|false`.
 - `setAttributionInfo()` no longer includes the supplied payload in its exception message (the parameter is also marked `#[\SensitiveParameter]`).
 - Event and content tracking requests now send `&ca=1` (custom action), so Matomo no longer falls back to recording them as page views if the handling plugin is disabled (#80).
@@ -36,7 +39,7 @@ Attention: this is a major release with breaking changes.
 
 ### Added
 - PHPStan static analysis at max level (`phpstan.neon.dist`) and the Matomo coding standard via PHP_CodeSniffer (`phpcs.xml.dist`), both enforced for every pull request through GitHub Actions.
-- A greatly expanded unit test suite covering all tracking parameters, cookie handling and request preparation, with code coverage reported in CI.
+- A greatly expanded unit test suite covering all tracking parameters, cookie handling and request preparation.
 - `setDebugTrackingParameter()` (`@internal` test helper) to append a raw, unvalidated tracking parameter that overrides any built-in parameter of the same name, so integration tests can verify server-side handling of malformed values.
 - `setCurlOptions(array)` to pass additional cURL options (e.g. `CURLOPT_IPRESOLVE`, `CURLOPT_HTTP_VERSION`) for the tracking requests; they are applied after the built-in options (#92).
 

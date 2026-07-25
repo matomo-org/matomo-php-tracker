@@ -83,6 +83,9 @@ class MatomoTracker
 
     public const DEFAULT_COOKIE_PATH = '/';
 
+    // Minimum request timeout (seconds) used for bulk tracking requests, which can be large.
+    public const DEFAULT_BULK_REQUEST_TIMEOUT = 30;
+
     /**
      * @var list<array{0: string, 1: string, 2: string|array<string>, 3: string, 4: int}>
      */
@@ -1150,9 +1153,23 @@ class MatomoTracker
         if ($postData === false) {
             throw new Exception("Failed to JSON encode the bulk tracking request");
         }
-        $response = $this->sendRequest($this->getBaseUrl(), 'POST', $postData, true);
 
-        $this->storedTrackingActions = [];
+        // Bulk imports can carry many actions and take longer than a single in-page request, so
+        // give them a more generous timeout (never below the caller-configured value).
+        $originalTimeout = $this->requestTimeout;
+        $this->requestTimeout = max($this->requestTimeout, self::DEFAULT_BULK_REQUEST_TIMEOUT);
+        try {
+            $response = $this->sendRequest($this->getBaseUrl(), 'POST', $postData, true);
+        } finally {
+            $this->requestTimeout = $originalTimeout;
+        }
+
+        // Only drop the queued actions once they were sent successfully, so a failed batch (in
+        // fail-safe mode, where sendRequest returns false) can be retried by calling doBulkTrack()
+        // again instead of being silently lost.
+        if ($response !== false) {
+            $this->storedTrackingActions = [];
+        }
 
         return $response;
     }
@@ -1706,7 +1723,10 @@ class MatomoTracker
      *
      * A User ID can be a username, UUID or an email address, or any number or string that uniquely identifies a user or client.
      *
-     * @param string|null $userId Any user ID string (eg. email address, ID, username). Must be non-empty. Set to null to de-assign a user id previously set.
+     * @param string|null $userId Any user ID string (eg. email address, ID, username). Must be non-empty.
+     *      Set to null to stop sending a User ID on subsequent requests. Note this does not retroactively
+     *      remove the User ID from the visitor's current Matomo visit; for logout isolation, also start a
+     *      new visit with a fresh visitor id (see setForceNewVisit() / setVisitorId()).
      * @return $this
      * @throws Exception
      */
@@ -2222,6 +2242,9 @@ didn't change any existing VisitorId value */
                 'user_agent' => $this->normalizeHeaderValue($this->userAgent),
                 'header' => "Accept-Language: " . $this->normalizeHeaderValue($this->acceptLanguage) . "\r\n",
                 'timeout' => $this->requestTimeout,
+                // Return the response body for HTTP error codes (4xx/5xx) instead of returning
+                // false, so this transport behaves like cURL, which also returns the error body.
+                'ignore_errors' => true,
             ],
         ];
 
@@ -2250,7 +2273,7 @@ didn't change any existing VisitorId value */
     /**
      * @ignore
      */
-    protected function sendRequest(string $url, string $method = 'GET', ?string $data = null, bool $force = false): string|bool
+    protected function sendRequest(#[\SensitiveParameter] string $url, string $method = 'GET', #[\SensitiveParameter] ?string $data = null, bool $force = false): string|bool
     {
         self::$DEBUG_LAST_REQUESTED_URL = $url;
 
@@ -2289,8 +2312,12 @@ didn't change any existing VisitorId value */
                 $appendTokenString = '&token_auth=' . urlencode($this->token_auth);
 
                 if (empty($this->requestMethod) || $method === 'POST') {
-                    // Only post token_auth but use GET URL parameters for everything else
+                    // Only post token_auth but use GET URL parameters for everything else.
+                    // The request must actually be a POST, otherwise Matomo reads $_GET/$_POST and
+                    // never sees a token sent in the body (this matters on the stream transport;
+                    // cURL forces POST via CURLOPT_POST below).
                     $forcePostUrlEncoded = true;
+                    $method = 'POST';
                     if (empty($data)) {
                         $data = '';
                     }

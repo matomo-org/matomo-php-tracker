@@ -25,7 +25,7 @@ namespace Unit;
 class TestableMatomoTracker extends \MatomoTracker
 {
     /**
-     * @var list<array{url: string, method: string, data: string|null, force: bool}>
+     * @var list<array{url: string, method: string, data: string|null, force: bool, timeout: int}>
      */
     public array $capturedRequests = [];
 
@@ -44,7 +44,13 @@ class TestableMatomoTracker extends \MatomoTracker
             return parent::sendRequest($url, $method, $data, $force);
         }
 
-        $this->capturedRequests[] = ['url' => $url, 'method' => $method, 'data' => $data, 'force' => $force];
+        $this->capturedRequests[] = [
+            'url' => $url,
+            'method' => $method,
+            'data' => $data,
+            'force' => $force,
+            'timeout' => $this->requestTimeout,
+        ];
 
         return $this->mockResponse;
     }

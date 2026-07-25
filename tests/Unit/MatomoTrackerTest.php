@@ -1338,6 +1338,8 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame('http://mymatomo.com/matomo.php', $request['url']);
         $this->assertSame('POST', $request['method']);
         $this->assertTrue($request['force']);
+        // bulk requests use the more generous bulk timeout
+        $this->assertGreaterThanOrEqual(\MatomoTracker::DEFAULT_BULK_REQUEST_TIMEOUT, $request['timeout']);
 
         $this->assertIsString($request['data']);
         $data = json_decode($request['data'], true);
@@ -1345,6 +1347,65 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame('0123456789abcdef0123456789abcdef', $data['token_auth']);
         $this->assertIsArray($data['requests']);
         $this->assertCount(2, $data['requests']);
+    }
+
+    public function testDoBulkTrackRetainsBatchOnFailureAndRestoresTimeout(): void
+    {
+        $tracker = $this->createTracker();
+        $tracker->mockResponse = false; // simulate a failed send
+        $tracker->enableBulkTracking();
+        $tracker->doTrackPageView('page');
+        $originalTimeout = $tracker->getRequestTimeout();
+
+        $this->assertFalse($tracker->doBulkTrack());
+        // the batch is kept so the caller can retry, and the (temporarily raised) timeout is restored
+        $this->assertCount(1, $tracker->storedTrackingActions);
+        $this->assertSame($originalTimeout, $tracker->getRequestTimeout());
+    }
+
+    public function testTokenAuthRequestIsSentAsPost(): void
+    {
+        // capture the transport method after sendRequest() has applied its token/method handling
+        $captured = new class (1, 'http://matomo.example/matomo.php') extends \MatomoTracker {
+            public string $capturedMethod = '';
+
+            protected function prepareCurlOptions(string $url, string $method, ?string $data, bool $forcePostUrlEncoded): array
+            {
+                $this->capturedMethod = $method;
+                throw new \RuntimeException('stop-before-network');
+            }
+        };
+        $captured->disableCookieSupport();
+        $captured->setTokenAuth('0123456789abcdef0123456789abcdef');
+
+        try {
+            $captured->doTrackPageView('page');
+            $this->fail('expected the network short-circuit');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('stop-before-network', $e->getMessage());
+        }
+
+        // with a token and no explicit request method, the request must be POSTed so Matomo
+        // reads token_auth from the body instead of ignoring a GET body
+        $this->assertSame('POST', $captured->capturedMethod);
+    }
+
+    public function testSendRequestMarksUrlAndDataAsSensitive(): void
+    {
+        $method = new \ReflectionMethod(\MatomoTracker::class, 'sendRequest');
+        $sensitive = [];
+        foreach ($method->getParameters() as $p) {
+            $sensitive[$p->getName()] = count($p->getAttributes(\SensitiveParameter::class)) > 0;
+        }
+        $this->assertTrue($sensitive['url']);
+        $this->assertTrue($sensitive['data']);
+    }
+
+    public function testStreamOptionsIgnoreHttpErrors(): void
+    {
+        $tracker = $this->createTracker();
+        $options = $tracker->callPrepareStreamOptions('GET', null, false);
+        $this->assertTrue($options['http']['ignore_errors']);
     }
 
     public function testDoBulkTrackThrowsWithoutStoredRequests(): void
