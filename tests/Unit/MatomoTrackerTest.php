@@ -710,14 +710,19 @@ class MatomoTrackerTest extends TestCase
         $this->assertArrayNotHasKey('foo', $query);
     }
 
-    public function testSetAttributionInfoThrowsOnInvalidJson(): void
+    public function testSetAttributionInfoThrowsOnInvalidJsonWithoutLeakingPayload(): void
     {
         $tracker = $this->createTracker();
+        $payload = 'not-json-with-secret@example.com';
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('JSON encoded string');
-
-        $tracker->setAttributionInfo('not-json');
+        try {
+            $tracker->setAttributionInfo($payload);
+            $this->fail('Expected an exception');
+        } catch (Exception $e) {
+            $this->assertStringContainsString('JSON encoded string', $e->getMessage());
+            // the (potentially PII-bearing) payload must not appear in the message
+            $this->assertStringNotContainsString($payload, $e->getMessage());
+        }
     }
 
     public function testGetAttributionInfoFromCookie(): void
@@ -1516,6 +1521,16 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame([], $tracker->outgoingTrackerCookies);
     }
 
+    public function testOutgoingCookiesAreJoinedWithSemicolon(): void
+    {
+        $tracker = $this->createTracker();
+        $tracker->setOutgoingTrackerCookie('a', '1');
+        $tracker->setOutgoingTrackerCookie('b', '2');
+
+        $options = $tracker->callPrepareCurlOptions('http://example.org', 'GET', null, false);
+        $this->assertSame('a=1; b=2', $options[CURLOPT_COOKIE]);
+    }
+
     public function testParseIncomingCookies(): void
     {
         $tracker = $this->createTracker();
@@ -1523,10 +1538,13 @@ class MatomoTrackerTest extends TestCase
         $tracker->callParseIncomingCookies([
             'Content-Type: text/plain',
             'Set-Cookie: first=value1; path=/; HttpOnly',
+            'Set-Cookie: second=value2; path=/',
             12345,
         ]);
 
+        // multiple Set-Cookie headers all accumulate (previously only the last survived)
         $this->assertSame('value1', $tracker->getIncomingTrackerCookie('first'));
+        $this->assertSame('value2', $tracker->getIncomingTrackerCookie('second'));
         $this->assertFalse($tracker->getIncomingTrackerCookie('missing'));
 
         $tracker->callParseIncomingCookies([]);

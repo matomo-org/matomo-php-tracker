@@ -28,6 +28,8 @@ Attention: this is a major release with breaking changes.
 ### Fixed
 - All tracking parameter values are now consistently URL-encoded (including `_refts`, `data`/`customData` and `cs`/charset), and the visitor ID read from the first-party cookie is validated as a 16-character hexadecimal string.
 - Request-failure exceptions no longer include the full request URL (only the target host), so its query string is never surfaced in error messages/logs.
+- Outgoing tracker cookies are now joined with `; ` (not `&`), and all incoming `Set-Cookie` response headers are parsed instead of only the last one; `getIncomingTrackerCookie()` returns `string|false`.
+- `setAttributionInfo()` no longer includes the supplied payload in its exception message (the parameter is also marked `#[\SensitiveParameter]`).
 - Event and content tracking requests now send `&ca=1` (custom action), so Matomo no longer falls back to recording them as page views if the handling plugin is disabled (#80).
 - The `cip` (override IP) tracking parameter is now URL-encoded like every other value (#151).
 - No longer calls the deprecated `curl_close()` (it was already a no-op on the supported PHP versions) (#149).

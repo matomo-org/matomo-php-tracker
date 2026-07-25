@@ -250,7 +250,7 @@ class MatomoTracker
     public array $outgoingTrackerCookies = [];
 
     /**
-     * @var array<array-key, mixed>
+     * @var array<string, string>
      */
     public array $incomingTrackerCookies = [];
 
@@ -441,11 +441,11 @@ class MatomoTracker
      * @throws Exception
      * @see function getAttributionInfo() in https://github.com/matomo-org/matomo/blob/master/js/matomo.js
      */
-    public function setAttributionInfo(string $jsonEncoded): self
+    public function setAttributionInfo(#[\SensitiveParameter] string $jsonEncoded): self
     {
         $decoded = json_decode($jsonEncoded, true);
         if (!is_array($decoded)) {
-            throw new Exception("setAttributionInfo() is expecting a JSON encoded string, $jsonEncoded given");
+            throw new Exception("setAttributionInfo() is expecting a JSON encoded string");
         }
         $this->attributionInfo = $decoded;
 
@@ -2117,6 +2117,20 @@ didn't change any existing VisitorId value */
     }
 
     /**
+     * Builds a single-line Cookie header value ("a=1; b=2") from the outgoing tracker cookies,
+     * URL-encoding each name and value.
+     */
+    private function buildOutgoingCookieHeader(): string
+    {
+        $pairs = [];
+        foreach ($this->outgoingTrackerCookies as $name => $value) {
+            $pairs[] = urlencode((string) $name) . '=' . urlencode($value);
+        }
+
+        return implode('; ', $pairs);
+    }
+
+    /**
      * Used in tests to output useful error messages.
      *
      * @ignore
@@ -2183,7 +2197,7 @@ didn't change any existing VisitorId value */
         }
 
         if (!empty($this->outgoingTrackerCookies)) {
-            $options[CURLOPT_COOKIE] = http_build_query($this->outgoingTrackerCookies);
+            $options[CURLOPT_COOKIE] = $this->buildOutgoingCookieHeader();
             $this->outgoingTrackerCookies = [];
         }
 
@@ -2226,7 +2240,7 @@ didn't change any existing VisitorId value */
         }
 
         if (!empty($this->outgoingTrackerCookies)) {
-            $stream_options['http']['header'] .= 'Cookie: ' . http_build_query($this->outgoingTrackerCookies) . "\r\n";
+            $stream_options['http']['header'] .= 'Cookie: ' . $this->buildOutgoingCookieHeader() . "\r\n";
             $this->outgoingTrackerCookies = [];
         }
 
@@ -2760,9 +2774,9 @@ didn't change any existing VisitorId value */
      *
      * @param string $name
      *
-     * @return mixed The cookie value, or false if no cookie with the given name was received.
+     * @return string|false The cookie value, or false if no cookie with the given name was received.
      */
-    public function getIncomingTrackerCookie(string $name): mixed
+    public function getIncomingTrackerCookie(string $name): string|false
     {
         return $this->incomingTrackerCookies[$name] ?? false;
     }
@@ -2776,22 +2790,28 @@ didn't change any existing VisitorId value */
     {
         $this->incomingTrackerCookies = [];
 
-        if (!empty($headers)) {
-            $headerName = 'set-cookie:';
-            $headerNameLength = strlen($headerName);
+        $headerName = 'set-cookie:';
+        $headerNameLength = strlen($headerName);
 
-            foreach ($headers as $header) {
-                $header = self::toStringValue($header);
-                if (strpos(strtolower($header), $headerName) !== 0) {
-                    continue;
-                }
-                $cookies = trim(substr($header, $headerNameLength));
-                $posEnd = strpos($cookies, ';');
-                if ($posEnd !== false) {
-                    $cookies = substr($cookies, 0, $posEnd);
-                }
-                parse_str($cookies, $this->incomingTrackerCookies);
+        foreach ($headers as $header) {
+            $header = self::toStringValue($header);
+            if (strpos(strtolower($header), $headerName) !== 0) {
+                continue;
             }
+            $cookie = trim(substr($header, $headerNameLength));
+            $posEnd = strpos($cookie, ';');
+            if ($posEnd !== false) {
+                $cookie = substr($cookie, 0, $posEnd);
+            }
+            // Parse only the first "=" so each cookie accumulates (parse_str would overwrite the
+            // whole set per header and apply query-string bracket semantics to the names).
+            $eqPos = strpos($cookie, '=');
+            if ($eqPos === false) {
+                continue;
+            }
+            $name = urldecode(trim(substr($cookie, 0, $eqPos)));
+            $value = urldecode(trim(substr($cookie, $eqPos + 1)));
+            $this->incomingTrackerCookies[$name] = $value;
         }
     }
 
