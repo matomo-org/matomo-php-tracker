@@ -24,6 +24,10 @@ Attention: this is a major release with breaking changes.
 - When the stream fallback is used and the request fails, `doBulkTrack()` / the `do*` methods now return `false` instead of an empty string.
 - Bumped the test suite to PHPUnit 10.5.
 
+### Fixed
+- The `cip` (override IP) tracking parameter is now URL-encoded like every other value (#151).
+- No longer calls the deprecated `curl_close()` (it was already a no-op on the supported PHP versions) (#149).
+
 ### Added
 - PHPStan static analysis at max level (`phpstan.neon.dist`) and the Matomo coding standard via PHP_CodeSniffer (`phpcs.xml.dist`), both enforced for every pull request through GitHub Actions.
 - A greatly expanded unit test suite covering all tracking parameters, cookie handling and request preparation, with code coverage reported in CI.
