@@ -802,6 +802,35 @@ class MatomoTrackerTest extends TestCase
         $this->assertStringNotContainsString('&bw_bytes=', $url);
     }
 
+    public function testCustomTrackingParameterAcceptsArrayValue(): void
+    {
+        $tracker = $this->createTracker();
+        // array values are serialized like the JS tracker does, via http_build_query
+        $tracker->setCustomTrackingParameter('forms', [['name' => 'a'], ['name' => 'b']]);
+
+        $url = $tracker->getUrlTrackPageView('title');
+        $this->assertStringContainsString('forms%5B0%5D%5Bname%5D=a', $url);
+        $this->assertStringContainsString('forms%5B1%5D%5Bname%5D=b', $url);
+    }
+
+    public function testSetDebugTrackingParameterOverridesBuiltInParameter(): void
+    {
+        $tracker = $this->createTracker();
+        // inject an intentionally invalid idsite to exercise server-side validation
+        $tracker->setDebugTrackingParameter('idsite', 'not-a-number');
+        $tracker->setDebugTrackingParameter('_cvar', '{"1":[["bad"],"v"]}');
+
+        $url = $tracker->getUrlTrackPageView('title');
+        // appended last so it wins over the built-in idsite=1
+        $this->assertStringContainsString('&idsite=not-a-number', $url);
+        $this->assertStringContainsString('&_cvar=' . urlencode('{"1":[["bad"],"v"]}'), $url);
+        $query = self::parseQueryParams($url);
+        $this->assertSame('not-a-number', $query['idsite']);
+
+        // debug parameters are cleared after a request
+        $this->assertStringNotContainsString('not-a-number', $tracker->getUrlTrackPageView('title'));
+    }
+
     public function testVisitorIdHandling(): void
     {
         $tracker = $this->createTracker();
@@ -1011,6 +1040,11 @@ class MatomoTrackerTest extends TestCase
         $tracker->setUrlReferer('http://other.example');
         $query = self::parseQueryParams($tracker->getUrlTrackPageView('title'));
         $this->assertSame('http://other.example', $query['urlref']);
+
+        // null unsets the referrer (renders as an empty urlref)
+        $tracker->setUrlReferrer(null);
+        $query = self::parseQueryParams($tracker->getUrlTrackPageView('title'));
+        $this->assertSame('', $query['urlref']);
     }
 
     public function testSetGenerationTimeIsANoOp(): void

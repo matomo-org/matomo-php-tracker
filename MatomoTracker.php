@@ -125,9 +125,17 @@ class MatomoTracker
     public array $ecommerceView = [];
 
     /**
-     * @var array<string, string>
+     * @var array<string, string|array<mixed>>
      */
     public array $customParameters = [];
+
+    /**
+     * Raw tracking parameters set via setDebugTrackingParameter(), appended verbatim.
+     *
+     * @var array<string, string>
+     * @internal
+     */
+    public array $debugParameters = [];
 
     /**
      * @var array<string, string>
@@ -330,10 +338,10 @@ class MatomoTracker
     /**
      * Sets the URL referrer used to track Referrers details for new visits.
      *
-     * @param string $url Raw URL (not URL encoded)
+     * @param string|null $url Raw URL (not URL encoded), or null to unset the referrer
      * @return $this
      */
-    public function setUrlReferrer(string $url): self
+    public function setUrlReferrer(?string $url): self
     {
         $this->urlReferrer = $url;
 
@@ -401,7 +409,7 @@ class MatomoTracker
      * @deprecated
      * @ignore
      */
-    public function setUrlReferer(string $url): self
+    public function setUrlReferer(?string $url): self
     {
         $this->setUrlReferrer($url);
 
@@ -550,15 +558,16 @@ class MatomoTracker
      * tracking request.
      *
      * @param string $trackingApiParameter The name of the tracking API parameter, eg 'bw_bytes'
-     * @param string $value Tracking parameter value that shall be sent for this tracking parameter.
+     * @param string|array<mixed> $value Tracking parameter value that shall be sent for this tracking parameter.
+     *      An array value is serialized the same way as the Matomo JS tracker does it (via http_build_query).
      * @return $this
      * @throws Exception
      */
-    public function setCustomTrackingParameter(string $trackingApiParameter, string $value): self
+    public function setCustomTrackingParameter(string $trackingApiParameter, string|array $value): self
     {
         $matches = [];
 
-        if (preg_match('/^dimension([0-9]+)$/', $trackingApiParameter, $matches)) {
+        if (is_string($value) && preg_match('/^dimension([0-9]+)$/', $trackingApiParameter, $matches)) {
             $this->setCustomDimension((int) $matches[1], $value);
 
             return $this;
@@ -575,6 +584,27 @@ class MatomoTracker
     public function clearCustomTrackingParameters(): void
     {
         $this->customParameters = [];
+    }
+
+    /**
+     * Test helper: sets a raw tracking parameter that is appended verbatim to the tracking
+     * request, bypassing the typed setters and any client-side validation.
+     *
+     * This is intended for integration tests (e.g. in Matomo itself) that need to verify how
+     * the server handles malformed or invalid parameter values. Because the parameter is
+     * appended last, it also overrides any built-in parameter of the same name. Like the other
+     * custom parameters, it is cleared after each tracking request. Not intended for production use.
+     *
+     * @internal
+     * @param string $name The tracking API parameter name, eg 'idsite' or '_cvar'
+     * @param string $value The raw value to send (may be intentionally invalid)
+     * @return $this
+     */
+    public function setDebugTrackingParameter(string $name, string $value): self
+    {
+        $this->debugParameters[$name] = $value;
+
+        return $this;
     }
 
     /**
@@ -2028,6 +2058,15 @@ didn't change any existing VisitorId value */
     }
 
     /**
+     * Returns the given value with any line breaks removed so it stays a single-line
+     * value when used in an outbound HTTP request header.
+     */
+    private function normalizeHeaderValue(?string $value): string
+    {
+        return str_replace(["\r", "\n"], '', (string) $value);
+    }
+
+    /**
      * Used in tests to output useful error messages.
      *
      * @ignore
@@ -2047,13 +2086,13 @@ didn't change any existing VisitorId value */
     ): array {
         $options = [
             CURLOPT_URL => $url,
-            CURLOPT_USERAGENT => $this->userAgent ?? '',
+            CURLOPT_USERAGENT => $this->normalizeHeaderValue($this->userAgent),
             CURLOPT_HEADER => true,
             CURLOPT_TIMEOUT => $this->requestTimeout,
             CURLOPT_CONNECTTIMEOUT => $this->requestConnectTimeout,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
-                'Accept-Language: ' . ($this->acceptLanguage ?? ''),
+                'Accept-Language: ' . $this->normalizeHeaderValue($this->acceptLanguage),
             ],
         ];
 
@@ -2111,8 +2150,8 @@ didn't change any existing VisitorId value */
         $stream_options = [
             'http' => [
                 'method' => $method,
-                'user_agent' => $this->userAgent ?? '',
-                'header' => "Accept-Language: " . ($this->acceptLanguage ?? '') . "\r\n",
+                'user_agent' => $this->normalizeHeaderValue($this->userAgent),
+                'header' => "Accept-Language: " . $this->normalizeHeaderValue($this->acceptLanguage) . "\r\n",
                 'timeout' => $this->requestTimeout,
             ],
         ];
@@ -2406,10 +2445,16 @@ didn't change any existing VisitorId value */
             $url .= '&' . $param . '=' . urlencode($value);
         }
 
+        // Raw debug parameters are appended last so they override any built-in parameter of the same name.
+        foreach ($this->debugParameters as $param => $value) {
+            $url .= '&' . urlencode($param) . '=' . urlencode($value);
+        }
+
         // Reset page level custom variables after this page view
         $this->ecommerceView = [];
         $this->pageCustomVar = [];
         $this->eventCustomVar = [];
+        $this->debugParameters = [];
         $this->clearCustomDimensions();
         $this->clearCustomTrackingParameters();
 
