@@ -689,6 +689,27 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame('http://referrer.example', $query['_ref']);
     }
 
+    public function testUrlValuesAreEncodedAgainstInjection(): void
+    {
+        $tracker = $this->createTracker();
+
+        // _refts comes from (attacker-controlled) attribution JSON and must be encoded
+        $tracker->setAttributionInfo('["c","k","1&new_visit=1&cid=deadbeefdeadbeef","r"]');
+        $tracker->customData = 'x&idsite=999';
+        $tracker->setPageCharset('utf-8&foo=bar');
+
+        $url = $tracker->getUrlTrackPageView('title');
+        $query = self::parseQueryParams($url);
+
+        // injected params must land inside the encoded value, not as separate parameters
+        $this->assertSame('1&new_visit=1&cid=deadbeefdeadbeef', $query['_refts']);
+        $this->assertSame('x&idsite=999', $query['data']);
+        $this->assertSame('utf-8&foo=bar', $query['cs']);
+        $this->assertArrayNotHasKey('new_visit', $query);
+        $this->assertSame('1', $query['idsite']); // built-in idsite is untouched
+        $this->assertArrayNotHasKey('foo', $query);
+    }
+
     public function testSetAttributionInfoThrowsOnInvalidJson(): void
     {
         $tracker = $this->createTracker();
@@ -916,6 +937,10 @@ class MatomoTrackerTest extends TestCase
         $this->assertFalse($tracker->callLoadVisitorIdCookie());
 
         $_COOKIE['_pk_id_1_f609'] = 'too-short.123';
+        $this->assertFalse($tracker->callLoadVisitorIdCookie());
+
+        // a 16-char but non-hex id (e.g. containing injection chars) is rejected
+        $_COOKIE['_pk_id_1_f609'] = '&x=1&y=2&z=3&w=4.1';
         $this->assertFalse($tracker->callLoadVisitorIdCookie());
 
         $_COOKIE['_pk_id_1_f609'] = 'abcdef0123456789.1583291045';

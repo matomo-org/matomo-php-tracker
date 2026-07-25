@@ -1823,7 +1823,11 @@ class MatomoTracker
             return false;
         }
         $parts = explode('.', $idCookie);
-        if (strlen($parts[0]) !== self::LENGTH_VISITOR_ID) {
+        $hexChars = '0123456789abcdefABCDEF';
+        if (
+            strlen($parts[0]) !== self::LENGTH_VISITOR_ID
+            || strspn($parts[0], $hexChars) !== self::LENGTH_VISITOR_ID
+        ) {
             return false;
         }
 
@@ -2328,7 +2332,8 @@ didn't change any existing VisitorId value */
             $ctx = stream_context_create($stream_options);
             $response = @file_get_contents($url, false, $ctx);
             if ($response === false && $this->exceptionsEnabled) {
-                throw new \RuntimeException('Failed to send the tracking request to ' . $url);
+                // Only include the host (never the query string, which carries token_auth/PII) in the message.
+                throw new \RuntimeException('Failed to send the tracking request to ' . (parse_url($url, PHP_URL_HOST) ?: 'the Matomo server'));
             }
             $content = $response;
 
@@ -2443,7 +2448,7 @@ didn't change any existing VisitorId value */
             (!empty($this->hasCookies) ? '&cookie=' . (int) $this->hasCookies : '') .
 
             // Various important attributes
-            (!empty($this->customData) ? '&data=' . $this->customData : '') .
+            (!empty($this->customData) ? '&data=' . urlencode($this->customData) : '') .
             (!empty($this->visitorCustomVar) ? '&_cvar=' . urlencode((string) json_encode($this->visitorCustomVar)) : '') .
             (!empty($this->pageCustomVar) ? '&cvar=' . urlencode((string) json_encode($this->pageCustomVar)) : '') .
             (!empty($this->eventCustomVar) ? '&e_cvar=' . urlencode((string) json_encode($this->eventCustomVar)) : '') .
@@ -2453,7 +2458,7 @@ didn't change any existing VisitorId value */
             '&url=' . urlencode($this->pageUrl) .
             '&urlref=' . urlencode($this->urlReferrer ?? '') .
             ((!empty($this->pageCharset) && $this->pageCharset != self::DEFAULT_CHARSET_PARAMETER_VALUES) ?
-                '&cs=' . $this->pageCharset : '') .
+                '&cs=' . urlencode($this->pageCharset) : '') .
 
             // unique pageview id
             (!empty($this->idPageview) ? '&pv_id=' . urlencode($this->idPageview) : '') .
@@ -2464,7 +2469,7 @@ didn't change any existing VisitorId value */
             // Campaign keyword
             (!empty($this->attributionInfo[1]) ? '&_rck=' . urlencode(self::toStringValue($this->attributionInfo[1])) : '') .
             // Timestamp at which the referrer was set
-            (!empty($this->attributionInfo[2]) ? '&_refts=' . self::toStringValue($this->attributionInfo[2]) : '') .
+            (!empty($this->attributionInfo[2]) ? '&_refts=' . urlencode(self::toStringValue($this->attributionInfo[2])) : '') .
             // Referrer URL
             (!empty($this->attributionInfo[3]) ? '&_ref=' . urlencode(self::toStringValue($this->attributionInfo[3])) : '') .
 
