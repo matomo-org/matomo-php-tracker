@@ -241,6 +241,9 @@ class MatomoTracker
 
     public bool $sendImageResponse = true;
 
+    // When true (default), failed tracking requests throw a RuntimeException; set false to return false instead.
+    public bool $exceptionsEnabled = true;
+
     /**
      * @var array<string, string>
      */
@@ -2072,6 +2075,23 @@ didn't change any existing VisitorId value */
     }
 
     /**
+     * Controls how failed tracking requests are handled.
+     *
+     * By default a request that fails to reach Matomo (DNS, connection or timeout errors)
+     * throws a RuntimeException. Call setExceptionsEnabled(false) to have such failures return
+     * false instead, so tracking never breaks the calling application.
+     *
+     * @param bool $enabled
+     * @return $this
+     */
+    public function setExceptionsEnabled(bool $enabled = true): self
+    {
+        $this->exceptionsEnabled = $enabled;
+
+        return $this;
+    }
+
+    /**
      * If the proxy IP and the proxy port have been set, with the setProxy() function
      * returns a string, like "173.234.92.107:80"
      */
@@ -2281,7 +2301,11 @@ didn't change any existing VisitorId value */
                 if ($response === false) {
                     $curlError = curl_error($ch);
                     if (!empty($curlError)) {
-                        throw new \RuntimeException($curlError);
+                        if ($this->exceptionsEnabled) {
+                            throw new \RuntimeException($curlError);
+                        }
+                        // fail-safe: a failed tracking request must not break the calling application
+                        $content = false;
                     }
                 }
 
@@ -2302,7 +2326,10 @@ didn't change any existing VisitorId value */
             $stream_options = $this->prepareStreamOptions($method, $data, $forcePostUrlEncoded);
 
             $ctx = stream_context_create($stream_options);
-            $response = file_get_contents($url, false, $ctx);
+            $response = @file_get_contents($url, false, $ctx);
+            if ($response === false && $this->exceptionsEnabled) {
+                throw new \RuntimeException('Failed to send the tracking request to ' . $url);
+            }
             $content = $response;
 
             $responseHeaders = [];

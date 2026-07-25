@@ -1421,6 +1421,33 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame(1, $options[CURLOPT_TIMEOUT]);
     }
 
+    private function makeFailingTracker(): \MatomoTracker
+    {
+        // A closed local port gives a fast, deterministic connection failure without external I/O.
+        $tracker = new \MatomoTracker(1, 'http://127.0.0.1:1/matomo.php');
+        $tracker->disableCookieSupport();
+        $tracker->setRequestConnectTimeout(1);
+        $tracker->setRequestTimeout(1);
+
+        return $tracker;
+    }
+
+    public function testFailedRequestThrowsByDefault(): void
+    {
+        $tracker = $this->makeFailingTracker();
+
+        $this->expectException(\RuntimeException::class);
+        $tracker->doTrackPageView('title');
+    }
+
+    public function testFailedRequestReturnsFalseWhenExceptionsDisabled(): void
+    {
+        $tracker = $this->makeFailingTracker();
+        $tracker->setExceptionsEnabled(false);
+
+        $this->assertFalse($tracker->doTrackPageView('title'));
+    }
+
     public function testPrepareStreamOptions(): void
     {
         $tracker = $this->createTracker();
