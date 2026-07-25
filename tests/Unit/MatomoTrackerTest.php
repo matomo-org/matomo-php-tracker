@@ -337,8 +337,12 @@ class MatomoTrackerTest extends TestCase
 
         $this->assertStringContainsString('&e_c=cat', $url);
         $this->assertStringContainsString('&e_a=act', $url);
+        $this->assertStringContainsString('&ca=1', $url);
         $this->assertStringNotContainsString('&e_n=', $url);
         $this->assertStringNotContainsString('&e_v=', $url);
+
+        // a plain page view is not a custom action
+        $this->assertStringNotContainsString('&ca=1', $tracker->getUrlTrackPageView('title'));
     }
 
     public function testGetUrlTrackEventWithNameAndValues(): void
@@ -375,6 +379,7 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame('name', $query['c_n']);
         $this->assertSame('piece', $query['c_p']);
         $this->assertSame('http://target.example', $query['c_t']);
+        $this->assertSame('1', $query['ca']);
 
         $url = $tracker->getUrlTrackContentImpression('name', '', null);
         $this->assertStringNotContainsString('&c_p=', $url);
@@ -394,6 +399,7 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame('name', $query['c_n']);
         $this->assertSame('piece', $query['c_p']);
         $this->assertSame('http://target.example', $query['c_t']);
+        $this->assertSame('1', $query['ca']);
 
         $url = $tracker->getUrlTrackContentInteraction('click', 'name', '', null);
         $this->assertStringNotContainsString('&c_p=', $url);

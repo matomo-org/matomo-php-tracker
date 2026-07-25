@@ -25,6 +25,7 @@ Attention: this is a major release with breaking changes.
 - Bumped the test suite to PHPUnit 10.5.
 
 ### Fixed
+- Event and content tracking requests now send `&ca=1` (custom action), so Matomo no longer falls back to recording them as page views if the handling plugin is disabled (#80).
 - The `cip` (override IP) tracking parameter is now URL-encoded like every other value (#151).
 - No longer calls the deprecated `curl_close()` (it was already a no-op on the supported PHP versions) (#149).
 

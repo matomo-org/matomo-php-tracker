@@ -1452,6 +1452,8 @@ class MatomoTracker
 
         $url .= '&e_c=' . urlencode($category);
         $url .= '&e_a=' . urlencode($action);
+        // mark as a custom action so Matomo does not fall back to tracking it as a page view
+        $url .= '&ca=1';
 
         if ($name !== null && $name !== '') {
             $url .= '&e_n=' . urlencode($name);
@@ -1485,6 +1487,8 @@ class MatomoTracker
         }
 
         $url .= '&c_n=' . urlencode($contentName);
+        // mark as a custom action so Matomo does not fall back to tracking it as a page view
+        $url .= '&ca=1';
 
         if (!empty($contentPiece)) {
             $url .= '&c_p=' . urlencode($contentPiece);
@@ -1525,6 +1529,8 @@ class MatomoTracker
 
         $url .= '&c_i=' . urlencode($interaction);
         $url .= '&c_n=' . urlencode($contentName);
+        // mark as a custom action so Matomo does not fall back to tracking it as a page view
+        $url .= '&ca=1';
 
         if (!empty($contentPiece)) {
             $url .= '&c_p=' . urlencode($contentPiece);
