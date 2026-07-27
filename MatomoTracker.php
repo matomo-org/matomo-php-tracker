@@ -2180,9 +2180,9 @@ didn't change any existing VisitorId value */
      * @return array<int, mixed>
      */
     protected function prepareCurlOptions(
-        string $url,
+        #[\SensitiveParameter] string $url,
         string $method,
-        ?string $data,
+        #[\SensitiveParameter] ?string $data,
         bool $forcePostUrlEncoded
     ): array {
         $options = [
@@ -2251,7 +2251,7 @@ didn't change any existing VisitorId value */
      *
      * @return array{http: array<string, mixed>}
      */
-    protected function prepareStreamOptions(string $method, ?string $data, bool $forcePostUrlEncoded): array
+    protected function prepareStreamOptions(string $method, #[\SensitiveParameter] ?string $data, bool $forcePostUrlEncoded): array
     {
         $stream_options = [
             'http' => [
