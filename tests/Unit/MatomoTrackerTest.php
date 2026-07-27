@@ -1859,7 +1859,7 @@ class MatomoTrackerTest extends TestCase
         $_SERVER['REQUEST_URI'] = '/dir/other.php';
         $this->assertSame('/dir/other.php', TestableMatomoTracker::callGetCurrentScriptName());
 
-        // Front-controller / path-info routing (#141): with a request for /dir1/page handled by
+        // Front-controller / path-info routing: with a request for /dir1/page handled by
         // dir1/index.php, PATH_INFO is only "/page". The full requested path must still be tracked,
         // so REQUEST_URI wins and PATH_INFO is ignored (previously it truncated the URL to "/page").
         $_SERVER['REQUEST_URI'] = '/dir1/page';
