@@ -40,6 +40,7 @@ class MatomoTracker
         'Gemini-Deep-Research',
         'Claude-User',
         'Perplexity-User',
+        'Google-GeminiNotebook',
         'Google-NotebookLM',
     ];
 
