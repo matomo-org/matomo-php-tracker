@@ -2094,6 +2094,10 @@ didn't change any existing VisitorId value */
      * transport. Overriding core options such as CURLOPT_RETURNTRANSFER or CURLOPT_HEADER may
      * break response handling, so use with care.
      *
+     * `CURLOPT_HTTPHEADER` is a special case: any headers supplied here are merged with (appended
+     * to) the tracker's own headers rather than replacing them, so you can add a custom header
+     * without accidentally dropping the built-in ones (e.g. the Content-Type for POST/bulk).
+     *
      * @param array<int, mixed> $curlOptions
      * @return $this
      */
@@ -2240,7 +2244,14 @@ didn't change any existing VisitorId value */
 
         // Caller-supplied options are applied last so they can extend or override the defaults.
         if (!empty($this->curlOptions)) {
+            // Preserve the tracker's own HTTP headers: a plain array_replace() would let a caller
+            // that only wants to add one header silently drop the built-in headers (notably the
+            // Content-Type for POST/bulk requests, which would make Matomo unable to parse the body).
+            $ownHeaders = $options[CURLOPT_HTTPHEADER];
             $options = array_replace($options, $this->curlOptions);
+            if (isset($this->curlOptions[CURLOPT_HTTPHEADER]) && is_array($this->curlOptions[CURLOPT_HTTPHEADER])) {
+                $options[CURLOPT_HTTPHEADER] = array_merge($ownHeaders, $this->curlOptions[CURLOPT_HTTPHEADER]);
+            }
         }
 
         return $options;

@@ -1443,15 +1443,55 @@ class MatomoTrackerTest extends TestCase
         $this->assertSame('POST', $captured->capturedMethod);
     }
 
-    public function testSendRequestMarksUrlAndDataAsSensitive(): void
+    /**
+     * The URL/body carry token_auth and PII, so they must be redacted from stack traces not only
+     * in sendRequest() but also in the transport option builders they are forwarded to (otherwise
+     * a throw one frame down would put them straight back into the trace).
+     *
+     * @return array<int, array{0: string, 1: string}>
+     */
+    public static function sensitiveParameterProvider(): array
     {
-        $method = new \ReflectionMethod(\MatomoTracker::class, 'sendRequest');
-        $sensitive = [];
-        foreach ($method->getParameters() as $p) {
-            $sensitive[$p->getName()] = count($p->getAttributes(\SensitiveParameter::class)) > 0;
+        return [
+            ['sendRequest', 'url'],
+            ['sendRequest', 'data'],
+            ['prepareCurlOptions', 'url'],
+            ['prepareCurlOptions', 'data'],
+            ['prepareStreamOptions', 'data'],
+        ];
+    }
+
+    /**
+     * @dataProvider sensitiveParameterProvider
+     */
+    public function testRequestUrlAndBodyAreMarkedSensitive(string $method, string $param): void
+    {
+        $reflection = new \ReflectionMethod(\MatomoTracker::class, $method);
+        foreach ($reflection->getParameters() as $p) {
+            if ($p->getName() === $param) {
+                $this->assertNotEmpty(
+                    $p->getAttributes(\SensitiveParameter::class),
+                    "$method(\$$param) must be marked #[\\SensitiveParameter]"
+                );
+                return;
+            }
         }
-        $this->assertTrue($sensitive['url']);
-        $this->assertTrue($sensitive['data']);
+        $this->fail("Parameter \$$param not found on $method()");
+    }
+
+    public function testSetCurlOptionsMergesHttpHeadersInsteadOfReplacingThem(): void
+    {
+        $tracker = $this->createTracker();
+        $tracker->setCurlOptions([CURLOPT_HTTPHEADER => ['X-Custom: 1']]);
+
+        // A POST/bulk-style request whose Content-Type must survive the caller's extra header.
+        $options = $tracker->callPrepareCurlOptions('http://example.org/', 'POST', 'foo=bar', true);
+        $headers = $options[CURLOPT_HTTPHEADER];
+
+        $this->assertIsArray($headers);
+        $this->assertContains('X-Custom: 1', $headers);
+        $this->assertContains('Content-Type: application/x-www-form-urlencoded', $headers);
+        $this->assertContains('Accept-Language: ', $headers);
     }
 
     public function testStreamOptionsIgnoreHttpErrors(): void
