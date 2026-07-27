@@ -1,0 +1,7 @@
+parameters:
+    level: max
+    phpVersion: 80100
+    paths:
+        - MatomoTracker.php
+        - PiwikTracker.php
+        - tests

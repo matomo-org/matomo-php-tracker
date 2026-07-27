@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Matomo - free/libre analytics platform
  *
@@ -11,6 +12,8 @@
  * @package MatomoTracker
  */
 
+declare(strict_types=1);
+
 if (!class_exists('\MatomoTracker')) {
     include_once('MatomoTracker.php');
 }
@@ -19,11 +22,11 @@ if (!class_exists('\MatomoTracker')) {
  * Helper function to quickly generate the URL to track a page view.
  *
  * @deprecated
- * @param $idSite
+ * @param int $idSite
  * @param string $documentTitle
  * @return string
  */
-function Piwik_getUrlTrackPageView($idSite, $documentTitle = '')
+function Piwik_getUrlTrackPageView(int $idSite, string $documentTitle = ''): string
 {
     return Matomo_getUrlTrackPageView($idSite, $documentTitle);
 }
@@ -32,12 +35,12 @@ function Piwik_getUrlTrackPageView($idSite, $documentTitle = '')
  * Helper function to quickly generate the URL to track a goal.
  *
  * @deprecated
- * @param $idSite
- * @param $idGoal
- * @param float $revenue
+ * @param int $idSite
+ * @param int $idGoal
+ * @param float|null $revenue
  * @return string
  */
-function Piwik_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
+function Piwik_getUrlTrackGoal(int $idSite, int $idGoal, ?float $revenue = null): string
 {
     return Matomo_getUrlTrackGoal($idSite, $idGoal, $revenue);
 }
@@ -47,4 +50,6 @@ function Piwik_getUrlTrackGoal($idSite, $idGoal, $revenue = 0.0)
  *
  * @deprecated use MatomoTracker instead
  */
-class PiwikTracker extends MatomoTracker {}
+class PiwikTracker extends MatomoTracker
+{
+}

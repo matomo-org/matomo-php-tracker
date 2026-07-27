@@ -1,0 +1,57 @@
+name: Code quality
+
+on:
+  pull_request:
+  push:
+    branches: [ master ]
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  deployments: none
+  issues: read
+  packages: none
+  pull-requests: read
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+          extensions: curl
+          coverage: none
+      - name: "Composer install"
+        run: composer install --prefer-dist
+      - name: PHPStan
+        run: ./vendor/bin/phpstan analyse --no-progress
+
+  phpcs:
+    name: PHP_CodeSniffer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+          extensions: curl
+          coverage: none
+      - name: "Composer install"
+        run: composer install --prefer-dist
+      - name: PHP_CodeSniffer
+        run: ./vendor/bin/phpcs
