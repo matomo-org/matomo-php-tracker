@@ -49,6 +49,29 @@ Alternatively, you can download the files and require the Matomo tracker manuall
 require_once("MatomoTracker.php");
 ```
 
+## Error handling and timeouts
+
+By default a tracking request that fails to reach Matomo (DNS, connection or timeout errors)
+throws a `RuntimeException`, so if you call the tracker inline in a page you should either wrap
+it in a `try`/`catch` or opt into fail-safe behavior:
+
+```php
+$matomoTracker->setExceptionsEnabled(false); // failed requests return false instead of throwing
+```
+
+The default timeouts are intentionally short so a slow or unreachable Matomo cannot block the
+calling page for long: **5 seconds** total and **2 seconds** to connect. Raise them for slow
+endpoints or large synchronous imports:
+
+```php
+$matomoTracker->setRequestTimeout(30);         // seconds, total
+$matomoTracker->setRequestConnectTimeout(5);   // seconds, connect
+```
+
+Combined, this means an unreachable Matomo throws (or, in fail-safe mode, returns `false`) after
+at most a few seconds rather than hanging the request. Bulk tracking (`doBulkTrack()`) uses a more
+generous timeout automatically and keeps the queued actions if a batch fails so it can be retried.
+
 ## Development
 
 Install the development dependencies with Composer and use the provided scripts:

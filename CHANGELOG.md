@@ -16,7 +16,7 @@ Attention: this is a major release with breaking changes.
 - All public properties are now natively typed. Assigning a legacy sentinel value such as `false` to e.g. `$tracker->userAgent` now throws a `TypeError`; the `attributionInfo` property defaults to an empty array instead of `false`. Subclasses overriding methods with the old untyped signatures may need to be updated to the new signatures.
 - `setUserId()` now accepts `null` to de-assign a previously set User ID, as the method documentation always promised (previously the `string` type hint made that impossible).
 - `setUrlReferrer()` (and the deprecated `setUrlReferer()`) accept `null` to unset the referrer.
-- `setCustomTrackingParameter()` accepts an array value again (serialized via `http_build_query`, as the JS tracker does); this restores the pre-4.0 behavior for multi-value parameters.
+- `setCustomTrackingParameter()` accepts an array value again (serialized via `http_build_query`, as the JS tracker does); this restores the pre-3.4.0 behavior for multi-value parameters.
 - `setLatitude()` / `setLongitude()` values of `0.0` (equator / prime meridian) are now sent to Matomo. Previously coordinates of exactly zero were silently dropped.
 - Goal and Ecommerce revenue amounts now distinguish "not set" from an explicit `0`. `doTrackGoal()` / `getUrlTrackGoal()` (and the `Matomo_`/`Piwik_` goal helpers) take `?float $revenue = null`: `null` omits `revenue` (so Matomo uses the goal's configured revenue) while `0.0` now sends `revenue=0`. Likewise the optional Ecommerce amounts (`$subTotal`, `$tax`, `$shipping`, `$discount` of `doTrackEcommerceOrder()` etc.) are `?float = null` and only sent when provided, and the required Ecommerce grand total is now always sent (a `0.0` order/cart sends `revenue=0`). Previously an explicit `0`/`0.0` was silently omitted for all of these.
 - The `do*` tracking methods now declare a `string|bool` return type. In bulk mode they return boolean `true` (previously the value was coerced to the string `"1"`).
@@ -26,7 +26,7 @@ Attention: this is a major release with breaking changes.
 - Bumped the test suite to PHPUnit 10.5.
 
 ### Fixed
-- All tracking parameter values are now consistently URL-encoded (including `_refts`, `data`/`customData` and `cs`/charset), and the visitor ID read from the first-party cookie is validated as a 16-character hexadecimal string.
+- All tracking parameter names and values are now consistently URL-encoded (including `_refts`, `data`/`customData`, `cs`/charset and the `download`/`link` action type passed to `getUrlTrackAction()`/`doTrackAction()`), and the visitor ID read from the first-party cookie is validated as a 16-character hexadecimal string.
 - Request-failure exceptions no longer include the full request URL (only the target host), so its query string is never surfaced in error messages/logs. The request URL and body are also marked `#[\SensitiveParameter]` so they are redacted from exception stack traces.
 - Authenticated requests that carry `token_auth` in the request body are now sent as `POST`; previously the stream transport sent them as `GET`, so Matomo ignored the token in the body.
 - The stream transport now returns the response body for HTTP 4xx/5xx responses (like cURL) instead of turning them into a failure.

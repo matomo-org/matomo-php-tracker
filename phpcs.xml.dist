@@ -12,7 +12,11 @@
 
     <rule ref="Matomo"/>
 
-    <!-- The tracker intentionally ships long single-line query-string concatenations. -->
+    <!--
+        400-char limit to match Matomo core's own coding standard (tests/PHPUnit/phpcs.xml):
+        the tracker ships long single-line query-string concatenations and the tests use long
+        user-agent / expected-URL literals. Kept in sync with core rather than set arbitrarily.
+    -->
     <rule ref="Generic.Files.LineLength">
         <properties>
             <property name="lineLimit" value="400"/>
