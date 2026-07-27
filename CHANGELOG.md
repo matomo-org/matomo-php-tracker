@@ -6,12 +6,14 @@ This is the Developer Changelog for Matomo PHP Tracker. All breaking changes or 
 
 Attention: this is a major release with breaking changes.
 
+> **Upgrade note — the `false` "not known" sentinel is gone.** Tracker 3.x let you pass `false` to many optional arguments to mean "value not known" (e.g. `doTrackEvent($cat, $act, $name, false)`, `addEcommerceItem($sku, $name, $cat, false)`, `setLatitude(false)`). Those arguments are now typed (`?T` or numeric unions). If your calling code does **not** use `declare(strict_types=1)` — the usual case for a drop-in tracker — PHP's weak-mode coercion silently turns `false` into `0` / `0.0` / `''` instead of raising an error, so such calls now **send a value** (`e_v=0`, `lat=0`, item price `0`) where 3.x omitted the parameter. Replace every `false` "not known" argument with `null` or simply omit it; passing `false` no longer means "unset".
+
 ### Removed
 - Support for PHP versions lower than 8.1. The tracker now requires PHP 8.1 or newer.
 - The `#[AllowDynamicProperties]` attribute. All properties are now declared explicitly, so setting undeclared dynamic properties on a tracker instance is no longer supported (extend `MatomoTracker` and declare the property instead).
 
 ### Changed
-- `declare(strict_types=1)` is now enabled and every method has proper parameter and return type hints aligned with how Matomo core handles the corresponding tracking parameters. **Passing a mismatched scalar type now throws a `TypeError` instead of being silently coerced.**
+- `declare(strict_types=1)` is now enabled and every method has proper parameter and return type hints aligned with how Matomo core handles the corresponding tracking parameters. Passing a value whose type cannot be coerced now throws a `TypeError` (for example a non-numeric string for a numeric parameter, or any type mismatch when the calling code itself declares `strict_types=1`). Note that for ordinary (non-strict) callers PHP's weak-mode coercion still applies, so e.g. `false` becomes `0`/`''` rather than raising — see the upgrade note above about the removed `false` sentinel.
 - Optional "unset" parameters and their corresponding properties and getters now use `null` instead of the previous `false` sentinel. For example `getUserId()`, `getUserAgent()`, `getIp()` and `getPageviewId()` now return `null` (not `false`) when no value is set, and `doTrackEvent()`/`getUrlTrackEvent()` default the event name and value to `null`.
 - All public properties are now natively typed. Assigning a legacy sentinel value such as `false` to e.g. `$tracker->userAgent` now throws a `TypeError`; the `attributionInfo` property defaults to an empty array instead of `false`. Subclasses overriding methods with the old untyped signatures may need to be updated to the new signatures.
 - `setUserId()` now accepts `null` to de-assign a previously set User ID, as the method documentation always promised (previously the `string` type hint made that impossible).
