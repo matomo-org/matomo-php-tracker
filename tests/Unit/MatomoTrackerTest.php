@@ -1848,17 +1848,24 @@ class MatomoTrackerTest extends TestCase
         unset($_SERVER['PATH_INFO'], $_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']);
         $this->assertSame('/', TestableMatomoTracker::callGetCurrentScriptName());
 
+        // SCRIPT_NAME is only the fallback when REQUEST_URI is unavailable.
         $_SERVER['SCRIPT_NAME'] = 'script.php';
         $this->assertSame('/script.php', TestableMatomoTracker::callGetCurrentScriptName());
 
+        // REQUEST_URI is the primary source; the query string is stripped.
         $_SERVER['REQUEST_URI'] = '/dir/page.php?query=1';
         $this->assertSame('/dir/page.php', TestableMatomoTracker::callGetCurrentScriptName());
 
         $_SERVER['REQUEST_URI'] = '/dir/other.php';
         $this->assertSame('/dir/other.php', TestableMatomoTracker::callGetCurrentScriptName());
 
-        $_SERVER['PATH_INFO'] = '/path/info';
-        $this->assertSame('/path/info', TestableMatomoTracker::callGetCurrentScriptName());
+        // Front-controller / path-info routing: with a request for /dir1/page handled by
+        // dir1/index.php, PATH_INFO is only "/page". The full requested path must still be tracked,
+        // so REQUEST_URI wins and PATH_INFO is ignored (previously it truncated the URL to "/page").
+        $_SERVER['REQUEST_URI'] = '/dir1/page';
+        $_SERVER['PATH_INFO'] = '/page';
+        $_SERVER['SCRIPT_NAME'] = '/dir1/index.php';
+        $this->assertSame('/dir1/page', TestableMatomoTracker::callGetCurrentScriptName());
     }
 
     public function testGetCurrentQueryStringAndUrl(): void
@@ -1871,7 +1878,8 @@ class MatomoTrackerTest extends TestCase
 
         $_SERVER['HTTPS'] = 'on';
         $_SERVER['HTTP_HOST'] = 'matomo.example';
-        $_SERVER['PATH_INFO'] = '/page';
+        unset($_SERVER['PATH_INFO']);
+        $_SERVER['REQUEST_URI'] = '/page';
         $this->assertSame('https://matomo.example/page?a=b&c=d', TestableMatomoTracker::callGetCurrentUrl());
     }
 

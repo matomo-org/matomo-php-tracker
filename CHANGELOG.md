@@ -38,6 +38,7 @@ Attention: this is a major release with breaking changes.
 - Event and content tracking requests now send `&ca=1` (custom action), so Matomo no longer falls back to recording them as page views if the handling plugin is disabled (#80).
 - The `cip` (override IP) tracking parameter is now URL-encoded like every other value (#151).
 - No longer calls the deprecated `curl_close()` (it was already a no-op on the supported PHP versions) (#149).
+- Auto-detection of the tracked page URL now uses `REQUEST_URI` as the source instead of `PATH_INFO`. With front-controller / path-info routing (e.g. `/dir1/page` handled by `dir1/index.php`), `PATH_INFO` only holds the trailing `/page`, so the tracker previously recorded a truncated URL; it now records the full requested path. `PATH_INFO` is no longer used at all (`SCRIPT_NAME` remains the fallback when `REQUEST_URI` is unavailable) (#141).
 
 ### Added
 - PHPStan static analysis at max level (`phpstan.neon.dist`) and the Matomo coding standard via PHP_CodeSniffer (`phpcs.xml.dist`), both enforced for every pull request through GitHub Actions.

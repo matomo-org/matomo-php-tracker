@@ -2621,24 +2621,26 @@ didn't change any existing VisitorId value */
     }
 
     /**
-     * If current URL is "http://example.org/dir1/dir2/index.php?param1=value1&param2=value2"
-     * will return "/dir1/dir2/index.php"
+     * Returns the path portion of the URL the visitor requested (everything between the host and
+     * the query string). For "http://example.org/dir1/dir2/index.php?param1=value1" this returns
+     * "/dir1/dir2/index.php"; for a front-controller URL such as "http://example.org/dir1/page"
+     * (where "/page" is handled by dir1/index.php) it returns "/dir1/page".
+     *
+     * The full request path is taken from REQUEST_URI. PATH_INFO is deliberately not used: it only
+     * holds the trailing path-info segment (e.g. "/page"), so it would drop the directory/script
+     * prefix and yield a truncated URL. SCRIPT_NAME is the fallback when REQUEST_URI is unavailable.
      *
      * @ignore
      */
     protected static function getCurrentScriptName(): string
     {
         $url = '';
-        if (!empty($_SERVER['PATH_INFO'])) {
-            $url = self::toStringValue($_SERVER['PATH_INFO']);
-        } else {
-            if (!empty($_SERVER['REQUEST_URI'])) {
-                $requestUri = self::toStringValue($_SERVER['REQUEST_URI']);
-                if (($pos = strpos($requestUri, '?')) !== false) {
-                    $url = substr($requestUri, 0, $pos);
-                } else {
-                    $url = $requestUri;
-                }
+        if (!empty($_SERVER['REQUEST_URI'])) {
+            $requestUri = self::toStringValue($_SERVER['REQUEST_URI']);
+            if (($pos = strpos($requestUri, '?')) !== false) {
+                $url = substr($requestUri, 0, $pos);
+            } else {
+                $url = $requestUri;
             }
         }
         if (empty($url) && isset($_SERVER['SCRIPT_NAME'])) {
