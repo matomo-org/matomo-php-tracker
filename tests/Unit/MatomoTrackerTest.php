@@ -491,6 +491,59 @@ class MatomoTrackerTest extends TestCase
         $this->assertStringContainsString('&link=' . urlencode('http://example.org/out'), $tracker->lastRequestUrl());
     }
 
+    public function testGetUrlTrackActionEncodesTheActionType(): void
+    {
+        $tracker = $this->createTracker();
+
+        // A crafted action type must be URL-encoded into a single parameter name and must not be
+        // able to inject an additional query-string parameter of its own.
+        $url = $tracker->getUrlTrackAction('http://example.org/file.zip', 'download&extra=1');
+
+        $this->assertStringContainsString('&' . urlencode('download&extra=1') . '=', $url);
+        $this->assertStringNotContainsString('&extra=1', $url);
+    }
+
+    /**
+     * @return \MatomoTracker a tracker that always uses the stream transport (no cURL)
+     */
+    private function createStreamTracker(string $apiUrl): \MatomoTracker
+    {
+        $tracker = new class (1, $apiUrl) extends \MatomoTracker {
+            protected function hasCurlSupport(): bool
+            {
+                return false;
+            }
+        };
+        $tracker->setUrl('http://somesite.com');
+
+        return $tracker;
+    }
+
+    public function testStreamTransportThrowsHostOnlyMessageOnFailure(): void
+    {
+        // Port 1 on loopback refuses the connection immediately, so the stream transport fails fast.
+        $tracker = $this->createStreamTracker('http://127.0.0.1:1/matomo.php');
+        $tracker->setTokenAuth(str_repeat('a', 32));
+
+        try {
+            $tracker->doTrackPageView('secret title');
+            $this->fail('Expected a RuntimeException from the failing stream request.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('127.0.0.1', $e->getMessage());
+            // The query string (which carries token_auth and other PII) must never leak into the message.
+            $this->assertStringNotContainsString('token_auth', $e->getMessage());
+            $this->assertStringNotContainsString('action_name', $e->getMessage());
+        }
+    }
+
+    public function testStreamTransportFailSafeReturnsFalseWhenExceptionsDisabled(): void
+    {
+        $tracker = $this->createStreamTracker('http://127.0.0.1:1/matomo.php');
+        $tracker->setExceptionsEnabled(false);
+
+        $this->assertFalse($tracker->doTrackPageView('some title'));
+    }
+
     public function testGetUrlTrackCrash(): void
     {
         $tracker = $this->createTracker();

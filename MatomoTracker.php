@@ -86,6 +86,9 @@ class MatomoTracker
     // Minimum request timeout (seconds) used for bulk tracking requests, which can be large.
     public const DEFAULT_BULK_REQUEST_TIMEOUT = 30;
 
+    // Hexadecimal characters allowed in a visitor ID.
+    private const HEX_CHARACTERS = '0123456789abcdefABCDEF';
+
     /**
      * @var list<array{0: string, 1: string, 2: string|array<string>, 3: string, 4: int}>
      */
@@ -133,7 +136,8 @@ class MatomoTracker
     public array $customParameters = [];
 
     /**
-     * Raw tracking parameters set via setDebugTrackingParameter(), appended verbatim.
+     * Raw tracking parameters set via setDebugTrackingParameter(). Their names and values are
+     * URL-encoded and appended after the built-in parameters, overriding any of the same name.
      *
      * @var array<string, string>
      * @internal
@@ -600,13 +604,14 @@ class MatomoTracker
     }
 
     /**
-     * Test helper: sets a raw tracking parameter that is appended verbatim to the tracking
-     * request, bypassing the typed setters and any client-side validation.
+     * Test helper: sets a raw tracking parameter, bypassing the typed setters and any
+     * client-side validation, so integration tests (e.g. in Matomo itself) can verify how the
+     * server handles malformed or invalid parameter values.
      *
-     * This is intended for integration tests (e.g. in Matomo itself) that need to verify how
-     * the server handles malformed or invalid parameter values. Because the parameter is
-     * appended last, it also overrides any built-in parameter of the same name. Like the other
-     * custom parameters, it is cleared after each tracking request. Not intended for production use.
+     * The name and value are URL-encoded (like any other parameter) and appended after the
+     * built-in parameters, so this overrides any built-in parameter of the same name. Send a
+     * value that is invalid once decoded server-side (raw bytes are not sent unencoded). Like
+     * the other custom parameters, it is cleared after each tracking request. Not for production use.
      *
      * @internal
      * @param string $name The tracking API parameter name, eg 'idsite' or '_cvar'
@@ -1613,13 +1618,14 @@ class MatomoTracker
      *
      * @see doTrackAction()
      * @param string $actionUrl URL of the download or outlink
-     * @param string $actionType Type of the action: 'download' or 'link'
+     * @param string $actionType Type of the action, usually 'download' or 'link' (a plugin may
+     *      define its own action parameter, so the value is URL-encoded rather than restricted).
      * @return string URL to matomo.php with all parameters set to track an action
      */
     public function getUrlTrackAction(string $actionUrl, string $actionType): string
     {
         $url = $this->getRequest($this->idSite);
-        $url .= '&' . $actionType . '=' . urlencode($actionUrl);
+        $url .= '&' . urlencode($actionType) . '=' . urlencode($actionUrl);
 
         return $url;
     }
@@ -1764,7 +1770,7 @@ class MatomoTracker
      */
     public function setVisitorId(string $visitorId): self
     {
-        $hexChars = '01234567890abcdefABCDEF';
+        $hexChars = self::HEX_CHARACTERS;
         if (
             strlen($visitorId) !== self::LENGTH_VISITOR_ID
             || strspn($visitorId, $hexChars) !== strlen($visitorId)
@@ -1843,7 +1849,7 @@ class MatomoTracker
             return false;
         }
         $parts = explode('.', $idCookie);
-        $hexChars = '0123456789abcdefABCDEF';
+        $hexChars = self::HEX_CHARACTERS;
         if (
             strlen($parts[0]) !== self::LENGTH_VISITOR_ID
             || strspn($parts[0], $hexChars) !== self::LENGTH_VISITOR_ID
@@ -2151,6 +2157,17 @@ didn't change any existing VisitorId value */
     }
 
     /**
+     * Whether the cURL extension is available. Used to choose the transport in sendRequest();
+     * overridable so the stream fallback can be exercised in tests.
+     *
+     * @ignore
+     */
+    protected function hasCurlSupport(): bool
+    {
+        return function_exists('curl_init') && function_exists('curl_exec');
+    }
+
+    /**
      * Used in tests to output useful error messages.
      *
      * @ignore
@@ -2332,7 +2349,7 @@ didn't change any existing VisitorId value */
 
         $content = '';
 
-        if (function_exists('curl_init') && function_exists('curl_exec')) {
+        if ($this->hasCurlSupport()) {
             $options = $this->prepareCurlOptions($url, $method, $data, $forcePostUrlEncoded);
 
             $ch = curl_init();
@@ -2385,7 +2402,8 @@ didn't change any existing VisitorId value */
                     $responseHeaders = $headers;
                 }
             } elseif ($response !== false) {
-                // $http_response_header is only defined when an HTTP response was received
+                // PHP populates $http_response_header in the local scope whenever an HTTP response
+                // was received; the $response !== false guard guarantees that is the case here.
                 $responseHeaders = $http_response_header;
             }
 
