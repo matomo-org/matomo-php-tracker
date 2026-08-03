@@ -2,6 +2,11 @@
 
 This is the Developer Changelog for Matomo PHP Tracker. All breaking changes or new features are listed below.
 
+## Matomo PHP Tracker 4.0.1
+
+### Fixed
+- Loading `MatomoTracker.php` no longer emits a deprecation notice for the predefined `$http_response_header` variable on PHP 8.5. PHP reports it at compile time, so it was emitted on every include (#155).
+
 ## Matomo PHP Tracker 4.0.0
 
 Attention: this is a major release with breaking changes.

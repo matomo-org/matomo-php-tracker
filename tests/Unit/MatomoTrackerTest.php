@@ -546,6 +546,29 @@ class MatomoTrackerTest extends TestCase
         $this->assertFalse($tracker->doTrackPageView('some title'));
     }
 
+    /**
+     * Loading the tracker must not emit any notice, as tools that turn those into exceptions
+     * (e.g. Psalm) would abort while autoloading the class. This is what the `$http_response_header`
+     * assignment in `sendRequest()` guards, so that assignment must stay above the read following it.
+     */
+    public function testLoadingTheTrackerEmitsNoDeprecationNotice(): void
+    {
+        // -n ignores the environment's php.ini, so that unrelated startup diagnostics (e.g. a
+        // dangling extension line) cannot fail this test
+        $command = escapeshellarg(PHP_BINARY)
+            . ' -n -d error_reporting=-1 -d display_errors=1 -d log_errors=0 -r '
+            . escapeshellarg('include ' . var_export(dirname(__DIR__, 2) . '/MatomoTracker.php', true) . '; echo \'loaded\';')
+            . ' 2>&1';
+
+        $output = [];
+        $exitCode = -1;
+        exec($command, $output, $exitCode);
+
+        // expecting the marker rather than just no output also catches a child that never ran
+        $this->assertSame('loaded', trim(implode("\n", $output)), 'Loading the tracker must not emit any notice');
+        $this->assertSame(0, $exitCode);
+    }
+
     public function testGetUrlTrackCrash(): void
     {
         $tracker = $this->createTracker();

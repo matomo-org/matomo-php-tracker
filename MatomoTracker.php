@@ -2400,6 +2400,12 @@ didn't change any existing VisitorId value */
             $stream_options = $this->prepareStreamOptions($method, $data, $forcePostUrlEncoded);
 
             $ctx = stream_context_create($stream_options);
+
+            // $http_response_header must be assigned before the fallback read below: PHP 8.5
+            // deprecated the predefined variable and reports it at compile time, so the read would
+            // otherwise emit a notice merely by loading this file. PHP still overwrites the value.
+            $http_response_header = [];
+
             $response = @file_get_contents($url, false, $ctx);
             if ($response === false && $this->exceptionsEnabled) {
                 // Only include the host (never the query string, which carries token_auth/PII) in the message.
@@ -2414,8 +2420,8 @@ didn't change any existing VisitorId value */
                     $responseHeaders = $headers;
                 }
             } elseif ($response !== false) {
-                // PHP populates $http_response_header in the local scope whenever an HTTP response
-                // was received; the $response !== false guard guarantees that is the case here.
+                // PHP < 8.5 has no http_get_last_response_headers() and populates the local
+                // variable instead, which it only does when a response was actually received.
                 $responseHeaders = $http_response_header;
             }
 
